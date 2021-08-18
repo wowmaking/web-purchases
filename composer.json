@@ -1,0 +1,25 @@
+{
+    "name": "wowmaking/web-purchases",
+    "keywords": ["web-purchases"],
+    "description": "",
+    "homepage": "https://github.com/wowmaking/web-purchases",
+    "type": "library",
+    "license": "MIT",
+    "version": "1.0.0",
+    "autoload": {
+        "psr-4": {
+            "Wowmaking\\WebPurchases\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Ivan Lyutko",
+            "email": "i.lyutko@wowmaking.net"
+        }
+    ],
+    "require": {
+        "php": ">=7.2.0",
+        "stripe/stripe-php": "^7.93",
+        "recurly/recurly-client": "^4.6"
+    }
+}
