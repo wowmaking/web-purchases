@@ -12,7 +12,7 @@ use Wowmaking\WebPurchases\Resources\Lists\Prices;
 
 class Stripe implements PurchaseService
 {
-    /** @var  */
+    /** @var StripeClient */
     protected $client;
 
     /** @var PaymentServiceConfig */
@@ -54,9 +54,9 @@ class Stripe implements PurchaseService
     }
 
     /**
-     * @param mixed $client
+     * @param StripeClient $client
      */
-    public function setClient($client): void
+    public function setClient(StripeClient $client): void
     {
         $this->client = $client;
     }
@@ -76,7 +76,7 @@ class Stripe implements PurchaseService
 
             $price = new Price();
             $price->setId($item->id);
-            $price->setAmount($item->unit_amount / 100);
+            $price->setAmount($item->unit_amount);
             $price->setCurrency($item->currency);
             $price->setTrialPeriodDays($item->recurring->trial_period_days ?? 0);
             $price->setTrialPriceAmount(0);
@@ -88,11 +88,11 @@ class Stripe implements PurchaseService
     }
 
     /**
-     * @param $data
+     * @param array $data
      * @return Customer
      * @throws \Stripe\Exception\ApiErrorException
      */
-    public function createCustomer($data): Customer
+    public function createCustomer(array $data): Customer
     {
         $response = $this->getClient()->customers->create($data);
 
@@ -104,13 +104,13 @@ class Stripe implements PurchaseService
     }
 
     /**
-     * @param $customerId
+     * @param string $customerId
      * @return Customer
      * @throws \Stripe\Exception\ApiErrorException
      */
-    public function getCustomer($customerId): Customer
+    public function getCustomer(string $customerId): Customer
     {
-        $response = $this->getClient()->customers->retrieve($data);
+        $response = $this->getClient()->customers->retrieve($customerId);
 
         $customer = new Customer();
         $customer->setId($response->id);
@@ -119,12 +119,12 @@ class Stripe implements PurchaseService
     }
 
     /**
-     * @param $customerId
-     * @param $data
+     * @param string $customerId
+     * @param array $data
      * @return Customer
      * @throws \Stripe\Exception\ApiErrorException
      */
-    public function updateCustomer($customerId, $data): Customer
+    public function updateCustomer(string $customerId, array $data): Customer
     {
         $response = $this->getClient()->customers->update($customerId, $data);
 
@@ -135,13 +135,15 @@ class Stripe implements PurchaseService
     }
 
     /**
-     * @param $customerId
-     * @return Subscription[]
+     * @param string $customerId
+     * @return array
      * @throws \Stripe\Exception\ApiErrorException
      */
-    public function getSubscriptions($customerId): array
+    public function getSubscriptions(string $customerId): array
     {
-        $response = $this->getClient()->subscriptions->create($params);
+        $response = $this->getClient()->subscriptions->all([
+            'customer' => $customerId
+        ]);
 
         $subscriptions = [];
 
@@ -158,11 +160,11 @@ class Stripe implements PurchaseService
     }
 
     /**
-     * @param $data
+     * @param array $data
      * @return Subscription
      * @throws \Stripe\Exception\ApiErrorException
      */
-    public function createSubscription($data): Subscription
+    public function createSubscription(array $data): Subscription
     {
         $params = [
             'default_payment_method' => $data['payment_method_id'],
@@ -191,11 +193,11 @@ class Stripe implements PurchaseService
     }
 
     /**
-     * @param $subscriptionId
+     * @param string $subscriptionId
      * @return Subscription
      * @throws \Stripe\Exception\ApiErrorException
      */
-    public function cancelSubscription($subscriptionId): Subscription
+    public function cancelSubscription(string $subscriptionId): Subscription
     {
         $response = $this->getClient()->subscriptions->retrieve($subscriptionId)->cancel();
 
