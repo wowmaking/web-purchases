@@ -1,6 +1,6 @@
 {
     "name": "wowmaking/web-purchases",
-    "keywords": ["web-purchases"],
+    "keywords": ["wowmaking"],
     "description": "",
     "homepage": "https://github.com/wowmaking/web-purchases",
     "type": "library",
@@ -14,7 +14,8 @@
     "authors": [
         {
             "name": "Ivan Lyutko",
-            "email": "i.lyutko@wowmaking.net"
+            "email": "i.lyutko@wowmaking.net",
+            "role": "Developer"
         }
     ],
     "require": {
