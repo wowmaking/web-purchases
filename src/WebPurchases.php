@@ -23,6 +23,17 @@ class WebPurchases
     protected $client;
 
     /**
+     * @return string[]
+     */
+    public static function getPaymentServices(): array
+    {
+        return [
+            self::PAYMENT_SERVICE_RECURLY,
+            self::PAYMENT_SERVICE_STRIPE
+        ];
+    }
+
+    /**
      * @param string $client_type
      * @param string $secret_api_key
      * @param string $public_api_key
@@ -47,7 +58,7 @@ class WebPurchases
      */
     protected function __construct(string $client_type, string $secret_api_key, string $public_api_key)
     {
-        if (!in_array($client_type, [self::PAYMENT_SERVICE_RECURLY, self::PAYMENT_SERVICE_STRIPE])) {
+        if (!in_array($client_type, self::getPaymentServices())) {
             throw new \Exception('invalid client type');
         }
 
