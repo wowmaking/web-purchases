@@ -2,16 +2,16 @@
 
 namespace Wowmaking\WebPurchases;
 
+use Wowmaking\WebPurchases\Interfaces\PurchaseService;
 use Wowmaking\WebPurchases\Models\PaymentServiceConfig;
-use Wowmaking\WebPurchases\Services\RecurlyService\RecurlyService;
-use Wowmaking\WebPurchases\Services\StripeService\StripeService;
-use Wowmaking\WebPurchases\Interfaces\PurchasesInterface;
+use Wowmaking\WebPurchases\PurchaseServices\Recurly\Recurly;
+use Wowmaking\WebPurchases\PurchaseServices\Stripe\Stripe;;
 
 class WebPurchases
 {
-    protected const PAYMENT_SERVICE_STRIPE = 'stripe';
+    public const PAYMENT_SERVICE_STRIPE = 'stripe';
 
-    protected const PAYMENT_SERVICE_RECURLY = 'recurly';
+    public const PAYMENT_SERVICE_RECURLY = 'recurly';
 
     /** @var self */
     private static $service;
@@ -19,17 +19,17 @@ class WebPurchases
     /** @var string */
     protected $client_type;
 
-    /** @var PurchasesInterface */
+    /** @var PurchaseService */
     protected $client;
 
     /**
      * @param string $client_type
      * @param string $secret_api_key
      * @param string $public_api_key
-     * @return PurchasesInterface
+     * @return PurchaseService
      * @throws \Exception
      */
-    public static function client(string $client_type, string $secret_api_key, string $public_api_key): PurchasesInterface
+    public static function client(string $client_type, string $secret_api_key, string $public_api_key): PurchaseService
     {
         if (!self::$service instanceof self) {
             self::$service = new self($client_type, $secret_api_key, $public_api_key);
@@ -68,7 +68,7 @@ class WebPurchases
      * @param string $client_type
      * @return $this
      */
-    protected function setClientType(string $client_type): WebPurchases
+    protected function setClientType(string $client_type): self
     {
         $this->client_type = $client_type;
 
@@ -76,18 +76,18 @@ class WebPurchases
     }
 
     /**
-     * @return PurchasesInterface
+     * @return PurchaseService
      */
-    protected function getClient(): PurchasesInterface
+    protected function getClient(): PurchaseService
     {
         return $this->client;
     }
 
     /**
-     * @param PurchasesInterface $client
+     * @param PurchaseService $client
      * @return $this
      */
-    protected function setClient(PurchasesInterface $client): WebPurchases
+    protected function setClient(PurchaseService $client): self
     {
         $this->client = $client;
 
@@ -99,15 +99,15 @@ class WebPurchases
      * @return $this
      * @throws \Exception
      */
-    protected function loadClient(PaymentServiceConfig $config): WebPurchases
+    protected function loadClient(PaymentServiceConfig $config): self
     {
         switch ($this->getClientType()) {
             case self::PAYMENT_SERVICE_STRIPE:
-                $client = new StripeService($config);
+                $client = new Stripe($config);
                 break;
 
             case self::PAYMENT_SERVICE_RECURLY:
-                $client = new RecurlyService($config);
+                $client = new Recurly($config);
                 break;
 
             default:
