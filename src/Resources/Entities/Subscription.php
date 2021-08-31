@@ -85,17 +85,17 @@ class Subscription implements ResourcesEntity
     /**
      * @return Customer
      */
-    public function getCustomer(): Customer
+    public function getCustomerId(): Customer
     {
-        return $this->customer;
+        return $this->customer_id;
     }
 
     /**
-     * @param mixed $customer
+     * @param mixed $customerId
      */
-    public function setCustomer(Customer $customer): void
+    public function setCustomerId(string $customerId): void
     {
-        $this->customer = $customer;
+        $this->customer_id = $customerId;
     }
 
     /**
