@@ -144,7 +144,7 @@ class Recurly implements PurchaseService
 
     /**
      * @param string $customerId
-     * @return array
+     * @return \Wowmaking\WebPurchases\Resources\Entities\Subscription[]
      */
     public function getSubscriptions(string $customerId): array
     {
@@ -170,7 +170,16 @@ class Recurly implements PurchaseService
      */
     public function createSubscription(array $data): \Wowmaking\WebPurchases\Resources\Entities\Subscription
     {
-        $response = $this->getClient()->createSubscription($data);
+        $response = $this->getClient()->createSubscription([
+            'plan_code' => $data['product_id'],
+            'account' => [
+                'code' => $data['customer_id'],
+                'billing_info' => [
+                    'token_id' => $data['token_id']
+                ]
+            ],
+            'currency' => 'USD'
+        ]);
 
         $subscription = new \Wowmaking\WebPurchases\Resources\Entities\Subscription();
         $subscription->setTransactionId($response->id);

@@ -136,7 +136,7 @@ class Stripe implements PurchaseService
 
     /**
      * @param string $customerId
-     * @return array
+     * @return Subscription[]
      * @throws \Stripe\Exception\ApiErrorException
      */
     public function getSubscriptions(string $customerId): array
@@ -181,6 +181,13 @@ class Stripe implements PurchaseService
 
         if (isset($params['invoice_price_id'])) {
             $params['add_invoice_items'][] = ['price' => $params['invoice_price_id']];
+        }
+
+        $customer = $this->getClient()->customers->retrieve($data['customer_id']);
+        if (!isset($customer->invoice_settings->default_payment_method)) {
+            $this->getClient()->paymentMethods->attach($data['payment_method_id'], [
+                'customer' => $data['customer_id']
+            ]);
         }
 
         $response = $this->getClient()->subscriptions->create($params);
