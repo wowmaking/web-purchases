@@ -171,7 +171,7 @@ class Recurly implements PurchaseService
     public function createSubscription(array $data): \Wowmaking\WebPurchases\Resources\Entities\Subscription
     {
         $response = $this->getClient()->createSubscription([
-            'plan_code' => $data['product_id'],
+            'plan_code' => $data['price_id'],
             'account' => [
                 'code' => $data['customer_id'],
                 'billing_info' => [
