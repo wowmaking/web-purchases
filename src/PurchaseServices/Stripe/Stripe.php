@@ -194,6 +194,7 @@ class Stripe implements PurchaseService
 
         $subscription = new Subscription();
         $subscription->setTransactionId($response->id);
+        $subscription->setTransactionId($response->customer->id);
         $subscription->setCreatedAt($response->created);
 
         return $subscription;
@@ -210,6 +211,7 @@ class Stripe implements PurchaseService
 
         $subscription = new Subscription();
         $subscription->setTransactionId($response->id);
+        $subscription->setTransactionId($response->customer->id);
         $subscription->setCreatedAt($response->created);
 
         return $subscription;
