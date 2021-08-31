@@ -182,8 +182,8 @@ class Recurly implements PurchaseService
         ]);
 
         $subscription = new \Wowmaking\WebPurchases\Resources\Entities\Subscription();
-        $subscription->setTransactionId($response->id);
-        $subscription->setCreatedAt($response->created);
+        $subscription->setTransactionId($response->getId());
+        $subscription->setCreatedAt($response->getCreatedAt());
 
         return $subscription;
     }
@@ -197,8 +197,8 @@ class Recurly implements PurchaseService
         $response = $this->getClient()->cancelSubscription($subscriptionId);
 
         $subscription = new \Wowmaking\WebPurchases\Resources\Entities\Subscription();
-        $subscription->setTransactionId($response->id);
-        $subscription->setCreatedAt($response->created);
+        $subscription->setTransactionId($response->getId());
+        $subscription->setCreatedAt($response->getCreatedAt());
 
         return $subscription;
     }
