@@ -146,7 +146,7 @@ class Recurly implements PurchaseService
      */
     public function getSubscriptions(string $customerId): array
     {
-        $response = $this->getClient()->listAccountSubscriptions($customerId);
+        $response = $this->getClient()->listAccountSubscriptions('code-' . $customerId);
 
         $subscriptions = [];
 
