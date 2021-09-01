@@ -212,8 +212,8 @@ class Stripe implements PurchaseService
         $subscription = new Subscription();
         $subscription->setTransactionId($data->id);
         $subscription->setCustomerId($data->customer);
-        $subscription->setCreatedAt($data->created);
-        $subscription->setExpireAt($data->ended_at);
+        $subscription->setCreatedAt(date('Y-m-d H:i:s', $data->created));
+        $subscription->setExpireAt(isset($data->ended_at) ? date('Y-m-d H:i:s', $data->ended_at) : null);
         $subscription->setState($data->status);
 
         return $subscription;
