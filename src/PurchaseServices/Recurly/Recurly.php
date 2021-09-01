@@ -200,6 +200,7 @@ class Recurly implements PurchaseService
         $subscription->setCustomerId($data->getAccount()->getId());
         $subscription->setCreatedAt($data->getCreatedAt());
         $subscription->setExpireAt($data->getExpiresAt());
+        $subscription->setState($data->getState());
 
         return $subscription;
     }

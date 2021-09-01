@@ -20,6 +20,8 @@ class Subscription implements ResourcesEntity
 
     public $expire_at;
 
+    public $state;
+
     /**
      * @return mixed
      */
@@ -130,5 +132,21 @@ class Subscription implements ResourcesEntity
     public function setExpireAt($expire_at): void
     {
         $this->expire_at = $expire_at;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getState()
+    {
+        return $this->state;
+    }
+
+    /**
+     * @param mixed $state
+     */
+    public function setState($state): void
+    {
+        $this->state = $state;
     }
 }
