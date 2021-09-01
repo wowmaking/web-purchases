@@ -184,7 +184,7 @@ class Recurly implements PurchaseService
      */
     public function cancelSubscription(string $subscriptionId): Subscription
     {
-        $response = $this->getClient()->cancelSubscription($subscriptionId);
+        $response = $this->getClient()->terminateSubscription($subscriptionId);
 
         return $this->buildSubscription($response);
     }
