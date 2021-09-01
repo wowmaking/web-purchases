@@ -149,11 +149,7 @@ class Stripe implements PurchaseService
 
         /** @var \Stripe\Subscription $item */
         foreach ($response as $item) {
-            $subscription = new Subscription();
-            $subscription->setTransactionId($item->id);
-            $subscription->setCreatedAt($item->created);
-
-            $subscriptions[] = $subscription;
+            $subscriptions[] = $this->buildSubscription($item);
         }
 
         return $subscriptions;
@@ -192,12 +188,7 @@ class Stripe implements PurchaseService
 
         $response = $this->getClient()->subscriptions->create($params);
 
-        $subscription = new Subscription();
-        $subscription->setTransactionId($response->id);
-        $subscription->setTransactionId($response->customer->id);
-        $subscription->setCreatedAt($response->created);
-
-        return $subscription;
+        return $this->buildSubscription($response);
     }
 
     /**
@@ -209,10 +200,20 @@ class Stripe implements PurchaseService
     {
         $response = $this->getClient()->subscriptions->retrieve($subscriptionId)->cancel();
 
+        return $this->buildSubscription($response);
+    }
+
+    /**
+     * @param \Stripe\Subscription $data
+     * @return Subscription
+     */
+    public function buildSubscription($data): Subscription
+    {
         $subscription = new Subscription();
-        $subscription->setTransactionId($response->id);
-        $subscription->setTransactionId($response->customer->id);
-        $subscription->setCreatedAt($response->created);
+        $subscription->setTransactionId($data->id);
+        $subscription->setTransactionId($data->customer->id);
+        $subscription->setCreatedAt($data->created);
+        $subscription->setExpireAt($data->ended_at);
 
         return $subscription;
     }

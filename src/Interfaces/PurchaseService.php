@@ -20,4 +20,6 @@ interface PurchaseService
     public function getSubscriptions(string $customerId): array;
 
     public function cancelSubscription(string $subscriptionId): Subscription;
+
+    public function buildSubscription($data): Subscription;
 }

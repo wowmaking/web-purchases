@@ -3,15 +3,13 @@
 namespace Wowmaking\WebPurchases\PurchaseServices\Recurly;
 
 use Recurly\Client;
-use Recurly\Pager;
 use Recurly\RecurlyError;
-use Recurly\Resources\Account;
 use Recurly\Resources\Plan;
-use Recurly\Resources\Subscription;
 use Wowmaking\WebPurchases\Interfaces\PurchaseService;
 use Wowmaking\WebPurchases\Models\PaymentServiceConfig;
 use Wowmaking\WebPurchases\Resources\Entities\Customer;
 use Wowmaking\WebPurchases\Resources\Entities\Price;
+use Wowmaking\WebPurchases\Resources\Entities\Subscription;
 
 class Recurly implements PurchaseService
 {
@@ -144,7 +142,7 @@ class Recurly implements PurchaseService
 
     /**
      * @param string $customerId
-     * @return \Wowmaking\WebPurchases\Resources\Entities\Subscription[]
+     * @return Subscription[]
      */
     public function getSubscriptions(string $customerId): array
     {
@@ -152,13 +150,9 @@ class Recurly implements PurchaseService
 
         $subscriptions = [];
 
-        /** @var Subscription $item */
+        /** @var \Recurly\Resources\Subscription $item */
         foreach ($response as $item) {
-            $subscription = new \Wowmaking\WebPurchases\Resources\Entities\Subscription();
-            $subscription->setTransactionId($item->getId());
-            $subscription->setCreatedAt($item->getCreatedAt());
-
-            $subscriptions[] = $subscription;
+            $subscriptions[] = $this->buildSubscription($item);;
         }
 
         return $subscriptions;
@@ -166,9 +160,9 @@ class Recurly implements PurchaseService
 
     /**
      * @param array $data
-     * @return \Wowmaking\WebPurchases\Resources\Entities\Subscription
+     * @return Subscription
      */
-    public function createSubscription(array $data): \Wowmaking\WebPurchases\Resources\Entities\Subscription
+    public function createSubscription(array $data): Subscription
     {
         $response = $this->getClient()->createSubscription([
             'plan_code' => $data['price_id'],
@@ -181,26 +175,31 @@ class Recurly implements PurchaseService
             'currency' => 'USD'
         ]);
 
-        $subscription = new \Wowmaking\WebPurchases\Resources\Entities\Subscription();
-        $subscription->setTransactionId($response->getId());
-        $subscription->setCustomerId($response->getAccount()->getId());
-        $subscription->setCreatedAt($response->getCreatedAt());
-
-        return $subscription;
+        return $this->buildSubscription($response);
     }
 
     /**
      * @param string $subscriptionId
-     * @return \Wowmaking\WebPurchases\Resources\Entities\Subscription
+     * @return Subscription
      */
-    public function cancelSubscription(string $subscriptionId): \Wowmaking\WebPurchases\Resources\Entities\Subscription
+    public function cancelSubscription(string $subscriptionId): Subscription
     {
         $response = $this->getClient()->cancelSubscription($subscriptionId);
 
-        $subscription = new \Wowmaking\WebPurchases\Resources\Entities\Subscription();
-        $subscription->setTransactionId($response->getId());
-        $subscription->setCustomerId($response->getAccount()->getId());
-        $subscription->setCreatedAt($response->getCreatedAt());
+        return $this->buildSubscription($response);
+    }
+
+    /**
+     * @param \Recurly\Resources\Subscription $data
+     * @return Subscription
+     */
+    public function buildSubscription($data): Subscription
+    {
+        $subscription = new Subscription();
+        $subscription->setTransactionId($data->getId());
+        $subscription->setCustomerId($data->getAccount()->getId());
+        $subscription->setCreatedAt($data->getCreatedAt());
+        $subscription->setExpireAt($data->getExpiresAt());
 
         return $subscription;
     }

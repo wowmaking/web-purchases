@@ -18,6 +18,8 @@ class Subscription implements ResourcesEntity
 
     public $created_at;
 
+    public $expire_at;
+
     /**
      * @return mixed
      */
@@ -112,5 +114,21 @@ class Subscription implements ResourcesEntity
     public function setCreatedAt($created_at): void
     {
         $this->created_at = $created_at;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getExpireAt()
+    {
+        return $this->expire_at;
+    }
+
+    /**
+     * @param mixed $expire_at
+     */
+    public function setExpireAt($expire_at): void
+    {
+        $this->expire_at = $expire_at;
     }
 }
