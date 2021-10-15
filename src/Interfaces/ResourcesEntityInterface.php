@@ -2,7 +2,7 @@
 
 namespace Wowmaking\WebPurchases\Interfaces;
 
-interface ResourcesEntity
+interface ResourcesEntityInterface
 {
 
 }

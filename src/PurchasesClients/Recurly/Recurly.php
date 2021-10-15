@@ -1,65 +1,28 @@
 <?php
 
-namespace Wowmaking\WebPurchases\PurchaseServices\Recurly;
+namespace Wowmaking\WebPurchases\PurchasesClients\Recurly;
 
 use Recurly\Client;
 use Recurly\RecurlyError;
 use Recurly\Resources\Plan;
-use Wowmaking\WebPurchases\Interfaces\PurchaseService;
-use Wowmaking\WebPurchases\Models\PaymentServiceConfig;
+use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
 use Wowmaking\WebPurchases\Resources\Entities\Customer;
 use Wowmaking\WebPurchases\Resources\Entities\Price;
 use Wowmaking\WebPurchases\Resources\Entities\Subscription;
 
-class Recurly implements PurchaseService
+class Recurly extends PurchasesClient
 {
-    /** @var Client */
-    protected $client;
-
-    /** @var PaymentServiceConfig */
-    protected $config;
-
-    /**
-     * RecurlyService constructor.
-     * @param PaymentServiceConfig $config
-     */
-    public function __construct(PaymentServiceConfig $config)
+    public function loadProvider()
     {
-        $this->setConfig($config);
-
-        $this->setClient(new Client($this->getConfig()->getSecretApiKey()));
-    }
-
-    /**
-     * @return PaymentServiceConfig
-     */
-    public function getConfig(): PaymentServiceConfig
-    {
-        return $this->config;
-    }
-
-    /**
-     * @param PaymentServiceConfig $config
-     */
-    public function setConfig(PaymentServiceConfig $config): void
-    {
-        $this->config = $config;
+        $this->setProvider(new Client($this->getConfig()->getSecretApiKey()));
     }
 
     /**
      * @return Client
      */
-    public function getClient(): Client
+    public function getProvider(): Client
     {
-        return $this->client;
-    }
-
-    /**
-     * @param Client $client
-     */
-    public function setClient(Client $client): void
-    {
-        $this->client = $client;
+        return $this->provider;
     }
 
     /**
@@ -67,7 +30,7 @@ class Recurly implements PurchaseService
      */
     public function getPrices(): array
     {
-        $response = $this->getClient()->listPlans();
+        $response = $this->getProvider()->listPlans();
 
         $prices = [];
 
@@ -96,9 +59,9 @@ class Recurly implements PurchaseService
         $code = md5($data['email']);
 
         try {
-            $response = $this->getClient()->getAccount('code-' . $code);
+            $response = $this->getProvider()->getAccount('code-' . $code);
         } catch (RecurlyError $e) {
-            $response = $this->getClient()->createAccount([
+            $response = $this->getProvider()->createAccount([
                 'email' => $code,
                 'code' => md5($data['email'])
             ]);
@@ -118,7 +81,7 @@ class Recurly implements PurchaseService
      */
     public function updateCustomer(string $customerId, array $data): Customer
     {
-        $response = $this->getClient()->updateAccount($customerId, $data);
+        $response = $this->getProvider()->updateAccount($customerId, $data);
 
         $customer = new Customer();
         $customer->setId($response->getId());
@@ -132,7 +95,7 @@ class Recurly implements PurchaseService
      */
     public function getCustomer(string $customerId): Customer
     {
-        $response = $this->getClient()->getAccount($customerId);
+        $response = $this->getProvider()->getAccount($customerId);
 
         $customer = new Customer();
         $customer->setId($response->getId());
@@ -146,13 +109,13 @@ class Recurly implements PurchaseService
      */
     public function getSubscriptions(string $customerId): array
     {
-        $response = $this->getClient()->listAccountSubscriptions('code-' . $customerId);
+        $response = $this->getProvider()->listAccountSubscriptions('code-' . $customerId);
 
         $subscriptions = [];
 
         /** @var \Recurly\Resources\Subscription $item */
         foreach ($response as $item) {
-            $subscriptions[] = $this->buildSubscription($item);;
+            $subscriptions[] = $this->buildSubscriptionResource($item);;
         }
 
         return $subscriptions;
@@ -160,11 +123,11 @@ class Recurly implements PurchaseService
 
     /**
      * @param array $data
-     * @return Subscription
+     * @return mixed|\Recurly\Resources\Subscription
      */
-    public function createSubscription(array $data): Subscription
+    public function subscriptionCreationProcess(array $data)
     {
-        $response = $this->getClient()->createSubscription([
+        return $this->getProvider()->createSubscription([
             'plan_code' => $data['price_id'],
             'account' => [
                 'code' => $data['customer_id'],
@@ -174,8 +137,6 @@ class Recurly implements PurchaseService
             ],
             'currency' => 'USD'
         ]);
-
-        return $this->buildSubscription($response);
     }
 
     /**
@@ -184,16 +145,16 @@ class Recurly implements PurchaseService
      */
     public function cancelSubscription(string $subscriptionId): Subscription
     {
-        $response = $this->getClient()->terminateSubscription($subscriptionId);
+        $response = $this->getProvider()->terminateSubscription($subscriptionId);
 
-        return $this->buildSubscription($response);
+        return $this->buildSubscriptionResource($response);
     }
 
     /**
      * @param \Recurly\Resources\Subscription $data
      * @return Subscription
      */
-    public function buildSubscription($data): Subscription
+    public function buildSubscriptionResource($data): Subscription
     {
         $subscription = new Subscription();
         $subscription->setTransactionId($data->getId());

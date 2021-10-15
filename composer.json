@@ -5,7 +5,7 @@
     "homepage": "https://github.com/wowmaking/web-purchases",
     "type": "library",
     "license": "MIT",
-    "version": "1.0.18",
+    "version": "1.0.19",
     "autoload": {
         "psr-4": {
             "Wowmaking\\WebPurchases\\": "src/"
@@ -21,6 +21,7 @@
     "require": {
         "php": ">=7.2.0",
         "stripe/stripe-php": "^7.93",
-        "recurly/recurly-client": "^4.6"
+        "recurly/recurly-client": "^4.6",
+        "guzzlehttp/guzzle": "^7.3"
     }
 }

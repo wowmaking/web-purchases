@@ -2,10 +2,10 @@
 
 namespace Wowmaking\WebPurchases\Resources\Lists;
 
-use Wowmaking\WebPurchases\Interfaces\ResourcesList;
+use Wowmaking\WebPurchases\Interfaces\ResourcesListInterface;
 use Wowmaking\WebPurchases\Resources\Entities\Subscription;
 
-class Subscriptions implements ResourcesList
+class Subscriptions implements ResourcesListInterface
 {
     /** @var Subscription[] */
     protected $list = [];

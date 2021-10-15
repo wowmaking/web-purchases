@@ -2,103 +2,52 @@
 
 namespace Wowmaking\WebPurchases;
 
-use Wowmaking\WebPurchases\Interfaces\PurchaseService;
-use Wowmaking\WebPurchases\Models\PaymentServiceConfig;
-use Wowmaking\WebPurchases\PurchaseServices\Recurly\Recurly;
-use Wowmaking\WebPurchases\PurchaseServices\Stripe\Stripe;;
+use Wowmaking\WebPurchases\Interfaces\PurchasesClientInterface;
+use Wowmaking\WebPurchases\Models\PurchasesClientConfig;
+use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
+use Wowmaking\WebPurchases\PurchasesClients\Recurly\Recurly;
+use Wowmaking\WebPurchases\PurchasesClients\Stripe\Stripe;
 
 class WebPurchases
 {
-    public const PAYMENT_SERVICE_STRIPE = 'stripe';
-
-    public const PAYMENT_SERVICE_RECURLY = 'recurly';
-
     /** @var self */
     private static $service;
 
-    /** @var string */
-    protected $client_type;
-
-    /** @var PurchaseService */
+    /** @var PurchasesClientInterface */
     protected $client;
 
     /**
-     * @return string[]
-     */
-    public static function getPaymentServices(): array
-    {
-        return [
-            self::PAYMENT_SERVICE_RECURLY,
-            self::PAYMENT_SERVICE_STRIPE
-        ];
-    }
-
-    /**
-     * @param string $client_type
-     * @param string $secret_api_key
-     * @param string $public_api_key
-     * @return PurchaseService
-     * @throws \Exception
-     */
-    public static function client(string $client_type, string $secret_api_key, string $public_api_key): PurchaseService
-    {
-        if (!self::$service instanceof self) {
-            self::$service = new self($client_type, $secret_api_key, $public_api_key);
-        }
-
-        return self::$service->getClient();
-    }
-
-    /**
      * WebPurchases constructor.
-     * @param string $client_type
-     * @param string $secret_api_key
-     * @param string $public_api_key
+     * @param string $clientType
+     * @param string $secretKey
+     * @param string $publicKey
+     * @param string|null $magnusToken
+     * @param string|null $idfm
      * @throws \Exception
      */
-    protected function __construct(string $client_type, string $secret_api_key, string $public_api_key)
+    protected function __construct(string $clientType, string $secretKey, string $publicKey, ?string $magnusToken = null, ?string $idfm = null)
     {
-        if (!in_array($client_type, self::getPaymentServices())) {
+        if (!in_array($clientType, PurchasesClient::getPurchasesClientsTypes())) {
             throw new \Exception('invalid client type');
         }
 
-        $config = PaymentServiceConfig::create($secret_api_key, $public_api_key);
-
-        $this->setClientType($client_type)->loadClient($config);
+        $config = PurchasesClientConfig::create($clientType, $secretKey, $publicKey, $magnusToken, $idfm);
+        $this->loadClient($config);
     }
 
     /**
-     * @return string
+     * @return PurchasesClientInterface
      */
-    protected function getClientType(): string
-    {
-        return $this->client_type;
-    }
-
-    /**
-     * @param string $client_type
-     * @return $this
-     */
-    protected function setClientType(string $client_type): self
-    {
-        $this->client_type = $client_type;
-
-        return $this;
-    }
-
-    /**
-     * @return PurchaseService
-     */
-    protected function getClient(): PurchaseService
+    public function getClient(): PurchasesClientInterface
     {
         return $this->client;
     }
 
     /**
-     * @param PurchaseService $client
+     * @param PurchasesClientInterface $client
      * @return $this
      */
-    protected function setClient(PurchaseService $client): self
+    public function setClient(PurchasesClientInterface $client): self
     {
         $this->client = $client;
 
@@ -106,18 +55,36 @@ class WebPurchases
     }
 
     /**
-     * @param PaymentServiceConfig $config
+     * @param string $clientType
+     * @param string $secretKey
+     * @param string $publicKey
+     * @param string|null $magnusToken
+     * @param string|null $idfm
+     * @return PurchasesClientInterface
+     * @throws \Exception
+     */
+    public static function client(string $clientType, string $secretKey, string $publicKey, ?string $magnusToken = null, ?string $idfm = null): PurchasesClientInterface
+    {
+        if (!self::$service instanceof self) {
+            self::$service = new self($clientType, $secretKey, $publicKey, $magnusToken, $idfm);
+        }
+
+        return self::$service->getClient();
+    }
+
+    /**
+     * @param PurchasesClientConfig $config
      * @return $this
      * @throws \Exception
      */
-    protected function loadClient(PaymentServiceConfig $config): self
+    protected function loadClient(PurchasesClientConfig $config): self
     {
-        switch ($this->getClientType()) {
-            case self::PAYMENT_SERVICE_STRIPE:
+        switch ($config->getClientType()) {
+            case PurchasesClient::PAYMENT_SERVICE_STRIPE:
                 $client = new Stripe($config);
                 break;
 
-            case self::PAYMENT_SERVICE_RECURLY:
+            case PurchasesClient::PAYMENT_SERVICE_RECURLY:
                 $client = new Recurly($config);
                 break;
 

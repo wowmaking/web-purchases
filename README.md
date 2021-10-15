@@ -4,9 +4,9 @@
 composer require wowmaking/web-purchases
 ```
 
-# Payment services
-- Stripe 
-- Recurly 
+# Supported payment services
+- stripe 
+- recurly 
 
 # Entities 
 
@@ -14,7 +14,9 @@ composer require wowmaking/web-purchases
 ```
 use Wowmaking\WebPurchases\WebPurchases;
 
-$client = WebPurchases::service('stripe', 'secret_api_key', 'public_api_key')->getClient();
+$client = WebPurchases::client(string $clientType (stripe || recurly), string $secretKey, string $publicKey, ?string $token, ?string $idfm);
+
+Fields $token and $idfm are needed to send to the subtruck
 ```
 
 ## Price

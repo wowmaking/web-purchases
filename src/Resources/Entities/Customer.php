@@ -2,9 +2,9 @@
 
 namespace Wowmaking\WebPurchases\Resources\Entities;
 
-use Wowmaking\WebPurchases\Interfaces\ResourcesEntity;
+use Wowmaking\WebPurchases\Interfaces\ResourcesEntityInterface;
 
-class Customer implements ResourcesEntity
+class Customer implements ResourcesEntityInterface
 {
     public $id;
 

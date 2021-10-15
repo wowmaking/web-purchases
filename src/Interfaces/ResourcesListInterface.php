@@ -2,7 +2,7 @@
 
 namespace Wowmaking\WebPurchases\Interfaces;
 
-interface ResourcesList
+interface ResourcesListInterface
 {
     public function getList();
 

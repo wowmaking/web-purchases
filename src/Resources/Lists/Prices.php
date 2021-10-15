@@ -2,10 +2,10 @@
 
 namespace Wowmaking\WebPurchases\Resources\Lists;
 
-use Wowmaking\WebPurchases\Interfaces\ResourcesList;
+use Wowmaking\WebPurchases\Interfaces\ResourcesListInterface;
 use Wowmaking\WebPurchases\Resources\Entities\Price;
 
-class Prices implements ResourcesList
+class Prices implements ResourcesListInterface
 {
     /** @var Price[] */
     protected $list = [];

@@ -2,9 +2,9 @@
 
 namespace Wowmaking\WebPurchases\Resources\Entities;
 
-use Wowmaking\WebPurchases\Interfaces\ResourcesEntity;
+use Wowmaking\WebPurchases\Interfaces\ResourcesEntityInterface;
 
-class Subscription implements ResourcesEntity
+class Subscription implements ResourcesEntityInterface
 {
     public $transaction_id;
 

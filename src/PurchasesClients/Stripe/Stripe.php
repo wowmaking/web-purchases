@@ -1,64 +1,26 @@
 <?php
 
-namespace Wowmaking\WebPurchases\PurchaseServices\Stripe;
+namespace Wowmaking\WebPurchases\PurchasesClients\Stripe;
 
-use Wowmaking\WebPurchases\Interfaces\PurchaseService;
-use Wowmaking\WebPurchases\Models\PaymentServiceConfig;
 use Stripe\StripeClient;
+use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
 use Wowmaking\WebPurchases\Resources\Entities\Customer;
 use Wowmaking\WebPurchases\Resources\Entities\Price;
 use Wowmaking\WebPurchases\Resources\Entities\Subscription;
-use Wowmaking\WebPurchases\Resources\Lists\Prices;
 
-class Stripe implements PurchaseService
+class Stripe extends PurchasesClient
 {
-    /** @var StripeClient */
-    protected $client;
-
-    /** @var PaymentServiceConfig */
-    protected $config;
-
-    /**
-     * StripeService constructor.
-     * @param PaymentServiceConfig $config
-     */
-    public function __construct(PaymentServiceConfig $config)
+    public function loadProvider()
     {
-        $this->setConfig($config);
-
-        $this->setClient(new StripeClient($this->getConfig()->getSecretApiKey()));
-    }
-
-    /**
-     * @return PaymentServiceConfig
-     */
-    public function getConfig(): PaymentServiceConfig
-    {
-        return $this->config;
-    }
-
-    /**
-     * @param PaymentServiceConfig $config
-     */
-    public function setConfig(PaymentServiceConfig $config): void
-    {
-        $this->config = $config;
+        $this->setProvider(new StripeClient($this->getConfig()->getSecretApiKey()));
     }
 
     /**
      * @return StripeClient
      */
-    public function getClient(): StripeClient
+    public function getProvider(): StripeClient
     {
-        return $this->client;
-    }
-
-    /**
-     * @param StripeClient $client
-     */
-    public function setClient(StripeClient $client): void
-    {
-        $this->client = $client;
+        return $this->provider;
     }
 
     /**
@@ -67,7 +29,7 @@ class Stripe implements PurchaseService
      */
     public function getPrices(): array
     {
-        $response = $this->getClient()->prices->all(['expand' => ['data.tiers']]);
+        $response = $this->getProvider()->prices->all(['expand' => ['data.tiers']]);
 
         $prices = [];
 
@@ -94,7 +56,7 @@ class Stripe implements PurchaseService
      */
     public function createCustomer(array $data): Customer
     {
-        $response = $this->getClient()->customers->create($data);
+        $response = $this->getProvider()->customers->create($data);
 
         $customer = new Customer();
         $customer->setId($response->id);
@@ -110,7 +72,7 @@ class Stripe implements PurchaseService
      */
     public function getCustomer(string $customerId): Customer
     {
-        $response = $this->getClient()->customers->retrieve($customerId);
+        $response = $this->getProvider()->customers->retrieve($customerId);
 
         $customer = new Customer();
         $customer->setId($response->id);
@@ -126,7 +88,7 @@ class Stripe implements PurchaseService
      */
     public function updateCustomer(string $customerId, array $data): Customer
     {
-        $response = $this->getClient()->customers->update($customerId, $data);
+        $response = $this->getProvider()->customers->update($customerId, $data);
 
         $customer = new Customer();
         $customer->setId($response->id);
@@ -141,7 +103,7 @@ class Stripe implements PurchaseService
      */
     public function getSubscriptions(string $customerId): array
     {
-        $response = $this->getClient()->subscriptions->all([
+        $response = $this->getProvider()->subscriptions->all([
             'customer' => $customerId
         ]);
 
@@ -149,7 +111,7 @@ class Stripe implements PurchaseService
 
         /** @var \Stripe\Subscription $item */
         foreach ($response as $item) {
-            $subscriptions[] = $this->buildSubscription($item);
+            $subscriptions[] = $this->buildSubscriptionResource($item);
         }
 
         return $subscriptions;
@@ -157,10 +119,10 @@ class Stripe implements PurchaseService
 
     /**
      * @param array $data
-     * @return Subscription
+     * @return mixed|\Stripe\Subscription
      * @throws \Stripe\Exception\ApiErrorException
      */
-    public function createSubscription(array $data): Subscription
+    public function subscriptionCreationProcess(array $data)
     {
         $params = [
             'default_payment_method' => $data['payment_method_id'],
@@ -179,16 +141,14 @@ class Stripe implements PurchaseService
             $params['add_invoice_items'][] = ['price' => $params['invoice_price_id']];
         }
 
-        $customer = $this->getClient()->customers->retrieve($data['customer_id']);
+        $customer = $this->getProvider()->customers->retrieve($data['customer_id']);
         if (!isset($customer->invoice_settings->default_payment_method)) {
-            $this->getClient()->paymentMethods->attach($data['payment_method_id'], [
+            $this->getProvider()->paymentMethods->attach($data['payment_method_id'], [
                 'customer' => $data['customer_id']
             ]);
         }
 
-        $response = $this->getClient()->subscriptions->create($params);
-
-        return $this->buildSubscription($response);
+        return $this->getProvider()->subscriptions->create($params);
     }
 
     /**
@@ -198,16 +158,16 @@ class Stripe implements PurchaseService
      */
     public function cancelSubscription(string $subscriptionId): Subscription
     {
-        $response = $this->getClient()->subscriptions->retrieve($subscriptionId)->cancel();
+        $response = $this->getProvider()->subscriptions->retrieve($subscriptionId)->cancel();
 
-        return $this->buildSubscription($response);
+        return $this->buildSubscriptionResource($response);
     }
 
     /**
      * @param \Stripe\Subscription $data
      * @return Subscription
      */
-    public function buildSubscription($data): Subscription
+    public function buildSubscriptionResource($data): Subscription
     {
         $subscription = new Subscription();
         $subscription->setTransactionId($data->id);
