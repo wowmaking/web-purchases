@@ -81,7 +81,7 @@ class WebPurchases
         }
 
         if (!isset($config['secret_key'])) {
-            throw new \Exception('invalid purchases secret');
+            throw new \Exception('invalid purchases client secret');
         }
 
         switch ($config['client_type']) {
