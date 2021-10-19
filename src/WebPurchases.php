@@ -24,7 +24,7 @@ class WebPurchases
      * @return static
      * @throws \Exception
      */
-    public static function service(array $clientParams, array $subtruckParams, array $fbPixelParams): self
+    public static function service(array $clientParams, array $subtruckParams = [], array $fbPixelParams = []): self
     {
         if (!self::$service instanceof self) {
             self::$service = new self($clientParams, $subtruckParams, $fbPixelParams);
