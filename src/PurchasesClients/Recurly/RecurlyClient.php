@@ -2,7 +2,7 @@
 
 namespace Wowmaking\WebPurchases\PurchasesClients\Recurly;
 
-use Recurly\Client;
+use Recurly\Client as Provider;
 use Recurly\RecurlyError;
 use Recurly\Resources\Plan;
 use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
@@ -10,17 +10,19 @@ use Wowmaking\WebPurchases\Resources\Entities\Customer;
 use Wowmaking\WebPurchases\Resources\Entities\Price;
 use Wowmaking\WebPurchases\Resources\Entities\Subscription;
 
-class Recurly extends PurchasesClient
+class RecurlyClient extends PurchasesClient
 {
     public function loadProvider()
     {
-        $this->setProvider(new Client($this->getConfig()->getSecretApiKey()));
+        $provider = new Provider($this->getSecretKey());
+
+        $this->setProvider($provider);
     }
 
     /**
-     * @return Client
+     * @return Provider
      */
-    public function getProvider(): Client
+    public function getProvider(): Provider
     {
         return $this->provider;
     }
@@ -105,7 +107,8 @@ class Recurly extends PurchasesClient
 
     /**
      * @param string $customerId
-     * @return Subscription[]
+     * @return array
+     * @throws \Exception
      */
     public function getSubscriptions(string $customerId): array
     {
@@ -115,7 +118,7 @@ class Recurly extends PurchasesClient
 
         /** @var \Recurly\Resources\Subscription $item */
         foreach ($response as $item) {
-            $subscriptions[] = $this->buildSubscriptionResource($item);;
+            $subscriptions[] = $this->buildSubscriptionResource($item);
         }
 
         return $subscriptions;
@@ -123,9 +126,9 @@ class Recurly extends PurchasesClient
 
     /**
      * @param array $data
-     * @return mixed|\Recurly\Resources\Subscription
+     * @return \Recurly\Resources\Subscription
      */
-    public function subscriptionCreationProcess(array $data)
+    public function subscriptionCreationProcess(array $data): \Recurly\Resources\Subscription
     {
         return $this->getProvider()->createSubscription([
             'plan_code' => $data['price_id'],
@@ -142,6 +145,7 @@ class Recurly extends PurchasesClient
     /**
      * @param string $subscriptionId
      * @return Subscription
+     * @throws \Exception
      */
     public function cancelSubscription(string $subscriptionId): Subscription
     {
@@ -151,17 +155,26 @@ class Recurly extends PurchasesClient
     }
 
     /**
-     * @param \Recurly\Resources\Subscription $data
+     * @param $providerResponse
      * @return Subscription
+     * @throws \Exception
      */
-    public function buildSubscriptionResource($data): Subscription
+    public function buildSubscriptionResource($providerResponse): Subscription
     {
+        if (!$providerResponse instanceof \Recurly\Resources\Subscription) {
+            throw new \Exception('Invalid data object for build subscription resource');
+        }
+
         $subscription = new Subscription();
-        $subscription->setTransactionId($data->getId());
-        $subscription->setCustomerId($data->getAccount()->getId());
-        $subscription->setCreatedAt($data->getCreatedAt());
-        $subscription->setExpireAt($data->getExpiresAt());
-        $subscription->setState($data->getState());
+        $subscription->setTransactionId($providerResponse->getId());
+        $subscription->setEmail($providerResponse->getAccount()->getEmail());
+        $subscription->setCurrency($providerResponse->getCurrency());
+        $subscription->setAmount($providerResponse->getUnitAmount());
+        $subscription->setCustomerId($providerResponse->getAccount()->getId());
+        $subscription->setCreatedAt($providerResponse->getCreatedAt());
+        $subscription->setExpireAt($providerResponse->getExpiresAt());
+        $subscription->setState($providerResponse->getState());
+        $subscription->setProviderResponse($providerResponse);
 
         return $subscription;
     }

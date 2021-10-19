@@ -2,23 +2,25 @@
 
 namespace Wowmaking\WebPurchases\PurchasesClients\Stripe;
 
-use Stripe\StripeClient;
 use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
 use Wowmaking\WebPurchases\Resources\Entities\Customer;
 use Wowmaking\WebPurchases\Resources\Entities\Price;
 use Wowmaking\WebPurchases\Resources\Entities\Subscription;
+use \Stripe\StripeClient as Provider;
 
-class Stripe extends PurchasesClient
+class StripeClient extends PurchasesClient
 {
     public function loadProvider()
     {
-        $this->setProvider(new StripeClient($this->getConfig()->getSecretApiKey()));
+        $provider = new Provider($this->getSecretKey());
+
+        $this->setProvider($provider);
     }
 
     /**
-     * @return StripeClient
+     * @return Provider
      */
-    public function getProvider(): StripeClient
+    public function getProvider(): Provider
     {
         return $this->provider;
     }
@@ -119,10 +121,10 @@ class Stripe extends PurchasesClient
 
     /**
      * @param array $data
-     * @return mixed|\Stripe\Subscription
+     * @return \Stripe\Subscription
      * @throws \Stripe\Exception\ApiErrorException
      */
-    public function subscriptionCreationProcess(array $data)
+    public function subscriptionCreationProcess(array $data): \Stripe\Subscription
     {
         $params = [
             'default_payment_method' => $data['payment_method_id'],
@@ -164,17 +166,26 @@ class Stripe extends PurchasesClient
     }
 
     /**
-     * @param \Stripe\Subscription $data
+     * @param $providerResponse
      * @return Subscription
+     * @throws \Exception
      */
-    public function buildSubscriptionResource($data): Subscription
+    public function buildSubscriptionResource($providerResponse): Subscription
     {
+        if (!$providerResponse instanceof \Stripe\Subscription) {
+            throw new \Exception('Invalid data object for build subscription resource');
+        }
+
         $subscription = new Subscription();
-        $subscription->setTransactionId($data->id);
-        $subscription->setCustomerId($data->customer);
-        $subscription->setCreatedAt(date('Y-m-d H:i:s', $data->created));
-        $subscription->setExpireAt(isset($data->ended_at) ? date('Y-m-d H:i:s', $data->ended_at) : null);
-        $subscription->setState($data->status);
+        $subscription->setTransactionId($providerResponse->id);
+        $subscription->setEmail($providerResponse->customer->email);
+        $subscription->setCurrency($providerResponse->latest_invoice->currency);
+        $subscription->setAmount($providerResponse->latest_invoice->amount_paid / 100);
+        $subscription->setCustomerId($providerResponse->customer->id);
+        $subscription->setCreatedAt(date('Y-m-d H:i:s', $providerResponse->created));
+        $subscription->setExpireAt(isset($providerResponse->ended_at) ? date('Y-m-d H:i:s', $providerResponse->ended_at) : null);
+        $subscription->setState($providerResponse->status);
+        $subscription->setProviderResponse($providerResponse);
 
         return $subscription;
     }

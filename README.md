@@ -14,9 +14,27 @@ composer require wowmaking/web-purchases
 ```
 use Wowmaking\WebPurchases\WebPurchases;
 
-$client = WebPurchases::client(string $clientType (stripe || recurly), string $secretKey, string $publicKey, ?string $token, ?string $idfm);
+$clientParams = [
+    'client_type' => 'stripe',
+    'secret_key' => ...
+];
 
-Fields $token and $idfm are needed to send to the subtruck
+$subtruckParams = [
+    'token' => ...,
+    'idfm' => ...
+];
+
+$fbPixelParams = [
+    'token' => ...,
+    'pixel_id' => ...,
+    'domain' => ...,
+    'ip' => ...,
+    'user_agent' => ...,
+    'fbc' => ...,
+    'fbp' => ...,
+];
+
+$webPurchases = WebPurchases::service(array $clientParams, ?array $subtruckParams, ?array $fbPixelParams);
 ```
 
 ## Price
@@ -33,7 +51,7 @@ Fields $token and $idfm are needed to send to the subtruck
 use Wowmaking\WebPurchases\Resources\Entities\Price;
 
 
-$prices = $client->getPrices();
+$prices = $webPurchases->getPurchasesClient()->getPrices();
 ```
 
 
@@ -48,30 +66,50 @@ $prices = $client->getPrices();
 use Wowmaking\WebPurchases\Resources\Entities\Customer;
 
 
-$customer = $client->createCustomer($params); 
+$customer = $webPurchases->getPurchasesClient()->createCustomer($params); 
 
-$customer = $client->getCustomer($customerId);
+$customer = $webPurchases->getPurchasesClient()->getCustomer($customerId);
 
-$customer = $client->updateCustomer($customerId, $data);
+$customer = $webPurchases->getPurchasesClient()->updateCustomer($customerId, $data);
 ```
 
 ## Subscription
 
 #### Fields
 - transaction_id
+- email
+- currency
+- amount
 - customer_id
 - created_at
 - expire_at
 - state
+- provider_response
 
-#### Methods
+### Methods
+
+#### Create subscription
 ```
 use Wowmaking\WebPurchases\Resources\Entities\Subscription;
 
+$subscription = $webPurchases->getPurchasesClient()->createSubscription($params);
 
-$subscription = $client->createSubscription($params);
+!!!
+This method will automatically send an event to Subtruk and FbPixel 
+if you specified the correct settings ($subtruckParams, $fbPixelParams) 
+when calling the service
+```
 
-$subscriptions = $client->getSubscriptions($params);
+#### Get subscriptions
+```
+use Wowmaking\WebPurchases\Resources\Entities\Subscription;
 
-$subscriptions = $client->cancelSubscription($params);
+$subscriptions = $webPurchases->getPurchasesClient()->getSubscriptions($params);
+```
+
+#### Cancel subscription
+```
+use Wowmaking\WebPurchases\Resources\Entities\Subscription;
+
+$subscriptions = $webPurchases->getPurchasesClient()->cancelSubscription($params);
 ```

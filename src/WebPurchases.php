@@ -3,10 +3,11 @@
 namespace Wowmaking\WebPurchases;
 
 use Wowmaking\WebPurchases\Interfaces\PurchasesClientInterface;
-use Wowmaking\WebPurchases\Models\PurchasesClientConfig;
 use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
-use Wowmaking\WebPurchases\PurchasesClients\Recurly\Recurly;
-use Wowmaking\WebPurchases\PurchasesClients\Stripe\Stripe;
+use Wowmaking\WebPurchases\PurchasesClients\Recurly\RecurlyClient;
+use Wowmaking\WebPurchases\PurchasesClients\Stripe\StripeClient;
+use Wowmaking\WebPurchases\Services\FbPixel\FbPixelService;
+use Wowmaking\WebPurchases\Services\Subtruck\SubtruckService;
 
 class WebPurchases
 {
@@ -14,87 +15,127 @@ class WebPurchases
     private static $service;
 
     /** @var PurchasesClientInterface */
-    protected $client;
+    private $purchasesClient;
+
+    /**
+     * @param array $clientParams
+     * @param array $subtruckParams
+     * @param array $fbPixelParams
+     * @return static
+     * @throws \Exception
+     */
+    public static function service(array $clientParams, array $subtruckParams, array $fbPixelParams): self
+    {
+        if (!self::$service instanceof self) {
+            self::$service = new self($clientParams, $subtruckParams, $fbPixelParams);
+        }
+
+        return self::$service;
+    }
 
     /**
      * WebPurchases constructor.
-     * @param string $clientType
-     * @param string $secretKey
-     * @param string $publicKey
-     * @param string|null $magnusToken
-     * @param string|null $idfm
+     * @param array $clientParams
+     * @param array $subtruckParams
+     * @param array $fbPixelParams
      * @throws \Exception
      */
-    protected function __construct(string $clientType, string $secretKey, string $publicKey, ?string $magnusToken = null, ?string $idfm = null)
+    protected function __construct(array $clientParams, array $subtruckParams = [], array $fbPixelParams = [])
     {
-        if (!in_array($clientType, PurchasesClient::getPurchasesClientsTypes())) {
-            throw new \Exception('invalid client type');
-        }
+        $purchasesClient = $this->resolvePurchasesClient($clientParams);
 
-        $config = PurchasesClientConfig::create($clientType, $secretKey, $publicKey, $magnusToken, $idfm);
-        $this->loadClient($config);
+        $purchasesClient->setSubtruck($this->resolveSubtruck($subtruckParams));
+        $purchasesClient->setFbPixel($this->resolveFbPixel($fbPixelParams));
+
+        $this->setPurchasesClient($purchasesClient);
     }
 
     /**
      * @return PurchasesClientInterface
      */
-    public function getClient(): PurchasesClientInterface
+    public function getPurchasesClient(): PurchasesClientInterface
     {
-        return $this->client;
+        return $this->purchasesClient;
     }
 
     /**
-     * @param PurchasesClientInterface $client
+     * @param PurchasesClientInterface $purchasesClient
      * @return $this
      */
-    public function setClient(PurchasesClientInterface $client): self
+    public function setPurchasesClient(PurchasesClientInterface $purchasesClient): self
     {
-        $this->client = $client;
+        $this->purchasesClient = $purchasesClient;
 
         return $this;
     }
 
     /**
-     * @param string $clientType
-     * @param string $secretKey
-     * @param string $publicKey
-     * @param string|null $magnusToken
-     * @param string|null $idfm
-     * @return PurchasesClientInterface
+     * @param array $config
+     * @return RecurlyClient|StripeClient
      * @throws \Exception
      */
-    public static function client(string $clientType, string $secretKey, string $publicKey, ?string $magnusToken = null, ?string $idfm = null): PurchasesClientInterface
+    private function resolvePurchasesClient(array $config)
     {
-        if (!self::$service instanceof self) {
-            self::$service = new self($clientType, $secretKey, $publicKey, $magnusToken, $idfm);
+        if (!in_array(($config['client_type'] ?? null), PurchasesClient::getPurchasesClientsTypes())) {
+            throw new \Exception('invalid purchases client type');
         }
 
-        return self::$service->getClient();
-    }
+        if (!isset($config['secret_key'])) {
+            throw new \Exception('invalid purchases client type');
+        }
 
-    /**
-     * @param PurchasesClientConfig $config
-     * @return $this
-     * @throws \Exception
-     */
-    protected function loadClient(PurchasesClientConfig $config): self
-    {
-        switch ($config->getClientType()) {
+        switch ($config['client_type']) {
             case PurchasesClient::PAYMENT_SERVICE_STRIPE:
-                $client = new Stripe($config);
+                $client = new StripeClient($config['secret_key']);
                 break;
 
             case PurchasesClient::PAYMENT_SERVICE_RECURLY:
-                $client = new Recurly($config);
+                $client = new RecurlyClient($config['secret_key']);
                 break;
 
             default:
-                throw new \Exception('client create error');
+                throw new \Exception('payment client initialization error');
         }
 
-        $this->setClient($client);
+        return $client;
+    }
 
-        return $this;
+    /**
+     * @param array $config
+     * @return SubtruckService|null
+     */
+    private function resolveSubtruck(array $config):? SubtruckService
+    {
+        if (!isset($config['token']) || !isset($config['idfm'])) {
+            return null;
+        }
+
+        return SubtruckService::service($config['token'], $config['idfm']);
+    }
+
+    private function resolveFbPixel(array $config)
+    {
+        if (
+            !isset($config['token']) ||
+            !isset($config['pixel_id']) ||
+            !isset($config['domain']) ||
+            !isset($config['ip']) ||
+            !isset($config['user_agent']) ||
+            !isset($config['fbc']) ||
+            !isset($config['fbp'])
+        ) {
+            return null;
+        }
+
+        return FbPixelService::service(
+            $config['token'],
+            $config['pixel_id'],
+            $config['domain'],
+            $config['ip'],
+            $config['user_agent'],
+            $config['fbc'],
+            $config['fbp']
+        );
     }
 
 }

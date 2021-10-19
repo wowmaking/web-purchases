@@ -2,10 +2,11 @@
 
 namespace Wowmaking\WebPurchases\PurchasesClients;
 
-use GuzzleHttp\Client;
 use Wowmaking\WebPurchases\Interfaces\PurchasesClientInterface;
-use Wowmaking\WebPurchases\Models\PurchasesClientConfig;
+use Wowmaking\WebPurchases\Resources\Entities\Customer;
 use Wowmaking\WebPurchases\Resources\Entities\Subscription;
+use Wowmaking\WebPurchases\Services\FbPixel\FbPixelService;
+use Wowmaking\WebPurchases\Services\Subtruck\SubtruckService;
 
 abstract class PurchasesClient implements PurchasesClientInterface
 {
@@ -14,8 +15,14 @@ abstract class PurchasesClient implements PurchasesClientInterface
 
     protected $provider;
 
-    /** @var PurchasesClientConfig */
-    protected $config;
+    /** @var string */
+    protected $secretKey;
+
+    /** @var SubtruckService|null */
+    private $subtruck;
+
+    /** @var FbPixelService|null */
+    private $fbPixel;
 
     /**
      * @return string[]
@@ -30,14 +37,29 @@ abstract class PurchasesClient implements PurchasesClientInterface
 
     /**
      * PurchasesClient constructor.
-     * @param PurchasesClientConfig $config
-     * @throws \Exception
+     * @param $secretKey
      */
-    public function __construct(PurchasesClientConfig $config)
+    public function __construct($secretKey)
     {
-        $this->setConfig($config);
+        $this->setSecretKey($secretKey);
 
         $this->loadProvider();
+    }
+
+    /**
+     * @return string
+     */
+    public function getSecretKey(): string
+    {
+        return $this->secretKey;
+    }
+
+    /**
+     * @param string $secretKey
+     */
+    public function setSecretKey(string $secretKey): void
+    {
+        $this->secretKey = $secretKey;
     }
 
     /**
@@ -60,45 +82,69 @@ abstract class PurchasesClient implements PurchasesClientInterface
     }
 
     /**
-     * @return PurchasesClientConfig
+     * @return SubtruckService|null
      */
-    public function getConfig(): PurchasesClientConfig
+    public function getSubtruck():? SubtruckService
     {
-        return $this->config;
+        return $this->subtruck;
     }
 
     /**
-     * @param PurchasesClientConfig $config
+     * @param SubtruckService|null $subtruck
      */
-    public function setConfig(PurchasesClientConfig $config): void
+    public function setSubtruck(?SubtruckService $subtruck): void
     {
-        $this->config = $config;
+        $this->subtruck = $subtruck;
     }
+
+    /**
+     * @return FbPixelService|null
+     */
+    public function getFbPixel():? FbPixelService
+    {
+        return $this->fbPixel;
+    }
+
+    /**
+     * @param FbPixelService|null $fbPixel
+     */
+    public function setFbPixel(?FbPixelService $fbPixel): void
+    {
+        $this->fbPixel = $fbPixel;
+    }
+
+    abstract public function getPrices(): array;
+
+    abstract public function createCustomer(array $data): Customer;
+
+    abstract public function getCustomer(string $customerId): Customer;
+
+    abstract public function updateCustomer(string $customerId, array $data): Customer;
 
     public function createSubscription(array $data): Subscription
     {
         $response = $this->subscriptionCreationProcess($data);
 
-        $this->subscriptionToSubtruck($response);
+        $subscription = $this->buildSubscriptionResource($response);
 
-        return $this->buildSubscriptionResource($response);
+        if ($this->getSubtruck()) {
+            $this->getSubtruck()->track($subscription);
+        }
+
+        if ($this->getFbPixel()) {
+            $this->getFbPixel()->track($subscription);
+        }
+
+        return $subscription;
     }
 
-    /**
-     * @param $response
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     */
-    private function subscriptionToSubtruck($response)
-    {
-        $response = (new Client())->request('POST', 'https://subtruck.magnus.ms/api/v2/transaction/', [
-            'headers' => [
-                'Content-Type' => 'application/json'
-            ],
-            'body' => [
-                'idfm' => $this->getConfig()->getIdfm(),
-                'token' => $this->getConfig()->getMagnusToken(),
-                'transaction' => json_encode($response),
-            ]
-        ]);
-    }
+    abstract public function subscriptionCreationProcess(array $data);
+
+    abstract public function getSubscriptions(string $customerId): array;
+
+    abstract public function cancelSubscription(string $subscriptionId): Subscription;
+
+    abstract public function buildSubscriptionResource($providerResponse): Subscription;
+
+    abstract public function loadProvider();
 }

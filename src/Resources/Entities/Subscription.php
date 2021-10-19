@@ -8,19 +8,21 @@ class Subscription implements ResourcesEntityInterface
 {
     public $transaction_id;
 
-    private $price_id;
+    public $email;
 
-    private $revenue;
+    public $currency;
 
-    private $currency;
+    public $amount;
 
-    private $customer_id;
+    public $customer_id;
 
     public $created_at;
 
     public $expire_at;
 
     public $state;
+
+    public $providerResponse;
 
     /**
      * @return mixed
@@ -39,35 +41,19 @@ class Subscription implements ResourcesEntityInterface
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getPriceId()
+    public function getEmail(): string
     {
-        return $this->price_id;
+        return $this->email;
     }
 
     /**
-     * @param mixed $price_id
+     * @param string $email
      */
-    public function setPriceId($price_id): void
+    public function setEmail(string $email): void
     {
-        $this->price_id = $price_id;
-    }
-
-    /**
-     * @return float
-     */
-    public function getRevenue(): float
-    {
-        return $this->revenue;
-    }
-
-    /**
-     * @param float $revenue
-     */
-    public function setRevenue(float $revenue): void
-    {
-        $this->revenue = $revenue;
+        $this->email = $email;
     }
 
     /**
@@ -100,6 +86,22 @@ class Subscription implements ResourcesEntityInterface
     public function setCustomerId($customerId): void
     {
         $this->customer_id = $customerId;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getAmount()
+    {
+        return $this->amount;
+    }
+
+    /**
+     * @param mixed $amount
+     */
+    public function setAmount($amount): void
+    {
+        $this->amount = $amount;
     }
 
     /**
@@ -148,5 +150,21 @@ class Subscription implements ResourcesEntityInterface
     public function setState($state): void
     {
         $this->state = $state;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getProviderResponse()
+    {
+        return $this->providerResponse;
+    }
+
+    /**
+     * @param mixed $providerResponse
+     */
+    public function setProviderResponse($providerResponse): void
+    {
+        $this->providerResponse = $providerResponse;
     }
 }

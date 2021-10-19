@@ -56,10 +56,10 @@ interface PurchasesClientInterface
     public function cancelSubscription(string $subscriptionId): Subscription;
 
     /**
-     * @param $data
+     * @param $providerResponse
      * @return Subscription
      */
-    public function buildSubscriptionResource($data): Subscription;
+    public function buildSubscriptionResource($providerResponse): Subscription;
 
     public function loadProvider();
 }
