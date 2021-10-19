@@ -113,7 +113,11 @@ class WebPurchases
         return SubtruckService::service($config['token'], $config['idfm']);
     }
 
-    private function resolveFbPixel(array $config)
+    /**
+     * @param array $config
+     * @return FbPixelService|null
+     */
+    private function resolveFbPixel(array $config):? FbPixelService
     {
         if (
             !isset($config['token']) ||
