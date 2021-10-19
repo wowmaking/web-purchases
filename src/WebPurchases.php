@@ -94,7 +94,7 @@ class WebPurchases
                 break;
 
             default:
-                throw new \Exception('payment client initialization error');
+                throw new \Exception('purchases client initialization error');
         }
 
         return $client;
