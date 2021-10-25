@@ -64,8 +64,8 @@ class RecurlyClient extends PurchasesClient
             $response = $this->getProvider()->getAccount('code-' . $code);
         } catch (RecurlyError $e) {
             $response = $this->getProvider()->createAccount([
-                'email' => $code,
-                'code' => md5($data['email'])
+                'email' => $data['email'],
+                'code' => $code
             ]);
         }
 
