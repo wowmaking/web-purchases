@@ -134,6 +134,7 @@ class RecurlyClient extends PurchasesClient
             'plan_code' => $data['price_id'],
             'account' => [
                 'code' => $data['customer_id'],
+                'email' => $data['email'],
                 'billing_info' => [
                     'token_id' => $data['token_id']
                 ]
