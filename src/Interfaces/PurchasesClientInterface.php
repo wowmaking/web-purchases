@@ -57,6 +57,12 @@ interface PurchasesClientInterface
 
     /**
      * @param $providerResponse
+     * @return Customer
+     */
+    public function buildCustomerResource($providerResponse): Customer;
+
+    /**
+     * @param $providerResponse
      * @return Subscription
      */
     public function buildSubscriptionResource($providerResponse): Subscription;

@@ -144,6 +144,8 @@ abstract class PurchasesClient implements PurchasesClientInterface
 
     abstract public function cancelSubscription(string $subscriptionId): Subscription;
 
+    abstract public function buildCustomerResource($providerResponse): Customer;
+
     abstract public function buildSubscriptionResource($providerResponse): Subscription;
 
     abstract public function loadProvider();

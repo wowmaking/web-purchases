@@ -4,6 +4,7 @@ namespace Wowmaking\WebPurchases\PurchasesClients\Recurly;
 
 use Recurly\Client as Provider;
 use Recurly\RecurlyError;
+use Recurly\Resources\Account;
 use Recurly\Resources\Plan;
 use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
 use Wowmaking\WebPurchases\Resources\Entities\Customer;
@@ -55,6 +56,7 @@ class RecurlyClient extends PurchasesClient
     /**
      * @param array $data
      * @return Customer
+     * @throws \Exception
      */
     public function createCustomer(array $data): Customer
     {
@@ -69,42 +71,32 @@ class RecurlyClient extends PurchasesClient
             ]);
         }
 
-        $customer = new Customer();
-        $customer->setId($response->getId());
-        $customer->setEmail($response->getEmail());
-
-        return $customer;
+        return $this->buildCustomerResource($response);
     }
 
     /**
      * @param string $customerId
      * @param array $data
      * @return Customer
+     * @throws \Exception
      */
     public function updateCustomer(string $customerId, array $data): Customer
     {
         $response = $this->getProvider()->updateAccount($customerId, $data);
 
-        $customer = new Customer();
-        $customer->setId($response->getId());
-        $customer->setEmail($response->getEmail());
-
-        return $customer;
+        return $this->buildCustomerResource($response);
     }
 
     /**
      * @param string $customerId
      * @return Customer
+     * @throws \Exception
      */
     public function getCustomer(string $customerId): Customer
     {
         $response = $this->getProvider()->getAccount($customerId);
 
-        $customer = new Customer();
-        $customer->setId($response->getId());
-        $customer->setEmail($response->getEmail());
-
-        return $customer;
+        return $this->buildCustomerResource($response);
     }
 
     /**
@@ -159,13 +151,27 @@ class RecurlyClient extends PurchasesClient
 
     /**
      * @param $providerResponse
-     * @return Subscription
+     * @return Customer
      * @throws \Exception
      */
+    public function buildCustomerResource($providerResponse): Customer
+    {
+        if (!$providerResponse instanceof \Recurly\Resources\Account) {
+            throw new \Exception('Invalid data object for build customer resource, must be \Recurly\Resources\Account');
+        }
+
+        $customer = new Customer();
+        $customer->setId($providerResponse->getId());
+        $customer->setEmail($providerResponse->getEmail());
+        $customer->setData($providerResponse);
+
+        return $customer;
+    }
+
     public function buildSubscriptionResource($providerResponse): Subscription
     {
         if (!$providerResponse instanceof \Recurly\Resources\Subscription) {
-            throw new \Exception('Invalid data object for build subscription resource');
+            throw new \Exception('Invalid data object for build subscription resource, must be \Recurly\Resources\Subscription');
         }
 
         $customer = $this->getCustomer($providerResponse->getAccount()->getId());

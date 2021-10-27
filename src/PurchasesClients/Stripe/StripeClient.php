@@ -60,11 +60,7 @@ class StripeClient extends PurchasesClient
     {
         $response = $this->getProvider()->customers->create($data);
 
-        $customer = new Customer();
-        $customer->setId($response->id);
-        $customer->setEmail($response->email);
-
-        return $customer;
+        return $this->buildCustomerResource($response);
     }
 
     /**
@@ -76,11 +72,7 @@ class StripeClient extends PurchasesClient
     {
         $response = $this->getProvider()->customers->retrieve($customerId);
 
-        $customer = new Customer();
-        $customer->setId($response->id);
-        $customer->setEmail($response->email);
-
-        return $customer;
+        return $this->buildCustomerResource($response);
     }
 
     /**
@@ -93,11 +85,7 @@ class StripeClient extends PurchasesClient
     {
         $response = $this->getProvider()->customers->update($customerId, $data);
 
-        $customer = new Customer();
-        $customer->setId($response->id);
-        $customer->setEmail($response->email);
-
-        return $customer;
+        return $this->buildCustomerResource($response);
     }
 
     /**
@@ -169,13 +157,32 @@ class StripeClient extends PurchasesClient
 
     /**
      * @param $providerResponse
+     * @return Customer
+     * @throws \Exception
+     */
+    public function buildCustomerResource($providerResponse): Customer
+    {
+        if (!$providerResponse instanceof \Stripe\Customer) {
+            throw new \Exception('Invalid data object for build customer resource, must be \Stripe\Customer');
+        }
+
+        $customer = new Customer();
+        $customer->setId($providerResponse->id);
+        $customer->setEmail($providerResponse->email);
+        $customer->setData($providerResponse);
+
+        return $customer;
+    }
+
+    /**
+     * @param $providerResponse
      * @return Subscription
      * @throws \Exception
      */
     public function buildSubscriptionResource($providerResponse): Subscription
     {
         if (!$providerResponse instanceof \Stripe\Subscription) {
-            throw new \Exception('Invalid data object for build subscription resource');
+            throw new \Exception('Invalid data object for build subscription resource, must be \Stripe\Subscription');
         }
 
         $customer = $this->getCustomer($providerResponse->customer);
