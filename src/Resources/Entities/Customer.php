@@ -10,7 +10,7 @@ class Customer implements ResourcesEntityInterface
 
     public $email;
 
-    public $data;
+    public $provider_response;
 
     /**
      * @return mixed
@@ -47,18 +47,17 @@ class Customer implements ResourcesEntityInterface
     /**
      * @return mixed
      */
-    public function getData()
+    public function getProviderResponse()
     {
-        return $this->data;
+        return $this->provider_response;
     }
 
     /**
-     * @param mixed $data
+     * @param mixed $provider_response
      */
-    public function setData($data): void
+    public function setProviderResponse($provider_response): void
     {
-        $this->data = $data;
+        $this->provider_response = $provider_response;
     }
-
 
 }

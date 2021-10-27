@@ -3,8 +3,7 @@
 namespace Wowmaking\WebPurchases\PurchasesClients\Recurly;
 
 use Recurly\Client as Provider;
-use Recurly\RecurlyError;
-use Recurly\Resources\Account;
+use Recurly\Errors\NotFound;
 use Recurly\Resources\Plan;
 use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
 use Wowmaking\WebPurchases\Resources\Entities\Customer;
@@ -64,7 +63,7 @@ class RecurlyClient extends PurchasesClient
 
         try {
             $response = $this->getProvider()->getAccount('code-' . $code);
-        } catch (RecurlyError $e) {
+        } catch (NotFound $e) {
             $response = $this->getProvider()->createAccount([
                 'email' => $data['email'],
                 'code' => $code
@@ -110,10 +109,12 @@ class RecurlyClient extends PurchasesClient
 
         $subscriptions = [];
 
-        /** @var \Recurly\Resources\Subscription $item */
-        foreach ($response as $item) {
-            $subscriptions[] = $this->buildSubscriptionResource($item);
-        }
+        try {
+            /** @var \Recurly\Resources\Subscription $item */
+            foreach ($response as $item) {
+                $subscriptions[] = $this->buildSubscriptionResource($item);
+            }
+        } catch (NotFound $e) {}
 
         return $subscriptions;
     }
@@ -161,9 +162,9 @@ class RecurlyClient extends PurchasesClient
         }
 
         $customer = new Customer();
-        $customer->setId($providerResponse->getId());
+        $customer->setId($providerResponse->getId()); // recurly puts id in the id field! IT`S GREAT
         $customer->setEmail($providerResponse->getEmail());
-        $customer->setData($providerResponse);
+        $customer->setProviderResponse($providerResponse->getResponse()->getRawResponse());
 
         return $customer;
     }
@@ -174,18 +175,16 @@ class RecurlyClient extends PurchasesClient
             throw new \Exception('Invalid data object for build subscription resource, must be \Recurly\Resources\Subscription');
         }
 
-        $customer = $this->getCustomer($providerResponse->getAccount()->getId());
-
         $subscription = new Subscription();
         $subscription->setTransactionId($providerResponse->getId());
-        $subscription->setEmail($customer->getEmail());
+        $subscription->setEmail($providerResponse->getAccount()->getEmail());
         $subscription->setCurrency($providerResponse->getCurrency());
         $subscription->setAmount($providerResponse->getUnitAmount());
-        $subscription->setCustomerId($customer->getId());
+        $subscription->setCustomerId($providerResponse->getAccount()->getCode()); // recurly puts id in the code field! WTF????
         $subscription->setCreatedAt($providerResponse->getCreatedAt());
         $subscription->setExpireAt($providerResponse->getExpiresAt());
         $subscription->setState($providerResponse->getState());
-        $subscription->setProviderResponse($providerResponse);
+        $subscription->setProviderResponse($providerResponse->getResponse()->getRawResponse());
 
         return $subscription;
     }

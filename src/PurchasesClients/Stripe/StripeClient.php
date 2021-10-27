@@ -169,7 +169,7 @@ class StripeClient extends PurchasesClient
         $customer = new Customer();
         $customer->setId($providerResponse->id);
         $customer->setEmail($providerResponse->email);
-        $customer->setData($providerResponse);
+        $customer->setProviderResponse($providerResponse);
 
         return $customer;
     }

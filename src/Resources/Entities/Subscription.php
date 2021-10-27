@@ -22,7 +22,7 @@ class Subscription implements ResourcesEntityInterface
 
     public $state;
 
-    public $providerResponse;
+    public $provider_response;
 
     /**
      * @return mixed
@@ -157,7 +157,7 @@ class Subscription implements ResourcesEntityInterface
      */
     public function getProviderResponse()
     {
-        return $this->providerResponse;
+        return $this->provider_response;
     }
 
     /**
@@ -165,6 +165,6 @@ class Subscription implements ResourcesEntityInterface
      */
     public function setProviderResponse($providerResponse): void
     {
-        $this->providerResponse = $providerResponse;
+        $this->provider_response = $providerResponse;
     }
 }
