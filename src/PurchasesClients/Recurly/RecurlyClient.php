@@ -164,7 +164,10 @@ class RecurlyClient extends PurchasesClient
         $customer = new Customer();
         $customer->setId($providerResponse->getId()); // recurly puts id in the id field! IT`S GREAT
         $customer->setEmail($providerResponse->getEmail());
-        $customer->setProviderResponse($providerResponse->getResponse()->getRawResponse());
+
+        try {
+            $customer->setProviderResponse(json_decode($providerResponse->getResponse()->getRawResponse()));
+        } catch (\TypeError $e) {}
 
         return $customer;
     }
@@ -184,7 +187,10 @@ class RecurlyClient extends PurchasesClient
         $subscription->setCreatedAt($providerResponse->getCreatedAt());
         $subscription->setExpireAt($providerResponse->getExpiresAt());
         $subscription->setState($providerResponse->getState());
-        $subscription->setProviderResponse($providerResponse->getResponse()->getRawResponse());
+
+        try {
+            $subscription->setProviderResponse(json_decode($providerResponse->getResponse()->getRawResponse()));
+        } catch (\TypeError $e) {}
 
         return $subscription;
     }

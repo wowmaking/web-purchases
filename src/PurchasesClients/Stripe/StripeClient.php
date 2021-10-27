@@ -169,7 +169,7 @@ class StripeClient extends PurchasesClient
         $customer = new Customer();
         $customer->setId($providerResponse->id);
         $customer->setEmail($providerResponse->email);
-        $customer->setProviderResponse($providerResponse->toJSON());
+        $customer->setProviderResponse($providerResponse);
 
         return $customer;
     }
@@ -196,7 +196,7 @@ class StripeClient extends PurchasesClient
         $subscription->setCreatedAt(date('Y-m-d H:i:s', $providerResponse->created));
         $subscription->setExpireAt(isset($providerResponse->ended_at) ? date('Y-m-d H:i:s', $providerResponse->ended_at) : null);
         $subscription->setState($providerResponse->status);
-        $subscription->setProviderResponse($providerResponse->toJSON());
+        $subscription->setProviderResponse($providerResponse);
 
         return $subscription;
     }
