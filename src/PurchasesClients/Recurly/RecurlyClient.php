@@ -87,6 +87,7 @@ class RecurlyClient extends PurchasesClient
 
         $customer = new Customer();
         $customer->setId($response->getId());
+        $customer->setEmail($response->getEmail());
 
         return $customer;
     }
@@ -101,6 +102,7 @@ class RecurlyClient extends PurchasesClient
 
         $customer = new Customer();
         $customer->setId($response->getId());
+        $customer->setEmail($response->getEmail());
 
         return $customer;
     }
@@ -166,12 +168,14 @@ class RecurlyClient extends PurchasesClient
             throw new \Exception('Invalid data object for build subscription resource');
         }
 
+        $customer = $this->getCustomer($providerResponse->getAccount()->getId());
+
         $subscription = new Subscription();
         $subscription->setTransactionId($providerResponse->getId());
-        $subscription->setEmail($providerResponse->getAccount()->getEmail());
+        $subscription->setEmail($customer->getEmail());
         $subscription->setCurrency($providerResponse->getCurrency());
         $subscription->setAmount($providerResponse->getUnitAmount());
-        $subscription->setCustomerId($providerResponse->getAccount()->getId());
+        $subscription->setCustomerId($customer->getId());
         $subscription->setCreatedAt($providerResponse->getCreatedAt());
         $subscription->setExpireAt($providerResponse->getExpiresAt());
         $subscription->setState($providerResponse->getState());

@@ -78,6 +78,7 @@ class StripeClient extends PurchasesClient
 
         $customer = new Customer();
         $customer->setId($response->id);
+        $customer->setEmail($response->email);
 
         return $customer;
     }
@@ -94,6 +95,7 @@ class StripeClient extends PurchasesClient
 
         $customer = new Customer();
         $customer->setId($response->id);
+        $customer->setEmail($response->email);
 
         return $customer;
     }
@@ -176,12 +178,14 @@ class StripeClient extends PurchasesClient
             throw new \Exception('Invalid data object for build subscription resource');
         }
 
+        $customer = $this->getCustomer($providerResponse->customer);
+
         $subscription = new Subscription();
         $subscription->setTransactionId($providerResponse->id);
-        $subscription->setEmail($providerResponse->customer->email);
+        $subscription->setEmail($customer->getEmail());
         $subscription->setCurrency($providerResponse->latest_invoice->currency);
         $subscription->setAmount($providerResponse->latest_invoice->amount_paid / 100);
-        $subscription->setCustomerId($providerResponse->customer->id);
+        $subscription->setCustomerId($customer->getId());
         $subscription->setCreatedAt(date('Y-m-d H:i:s', $providerResponse->created));
         $subscription->setExpireAt(isset($providerResponse->ended_at) ? date('Y-m-d H:i:s', $providerResponse->ended_at) : null);
         $subscription->setState($providerResponse->status);
