@@ -190,8 +190,8 @@ class StripeClient extends PurchasesClient
         $subscription = new Subscription();
         $subscription->setTransactionId($providerResponse->id);
         $subscription->setEmail($customer->getEmail());
-        $subscription->setCurrency($providerResponse->latest_invoice->currency);
-        $subscription->setAmount($providerResponse->latest_invoice->amount_paid / 100);
+        $subscription->setCurrency(strtoupper($providerResponse->plan->currency));
+        $subscription->setAmount($providerResponse->plan->amount_paid / 100);
         $subscription->setCustomerId($customer->getId());
         $subscription->setCreatedAt(date('Y-m-d H:i:s', $providerResponse->created));
         $subscription->setExpireAt(isset($providerResponse->ended_at) ? date('Y-m-d H:i:s', $providerResponse->ended_at) : null);
