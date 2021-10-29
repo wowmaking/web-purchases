@@ -62,8 +62,12 @@ class StripeClient extends PurchasesClient
         $response = $this->getProvider()->customers->all($params);
 
         $result = [];
-        foreach ($response as $customer) {
-            $result[] = $this->buildCustomerResource($customer);
+        foreach ($response as $item) {
+            if (!$item instanceof \Stripe\Customer) {
+                continue;
+            }
+
+            $result[$item->id] = $this->buildCustomerResource($item);
         }
 
         return $result;

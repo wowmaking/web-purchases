@@ -59,11 +59,17 @@ class RecurlyClient extends PurchasesClient
      */
     public function getCustomers($params): array
     {
-        $response = $this->getProvider()->listAccounts($params);
+        $response = $this->getProvider()->listAccounts([
+            'params' => $params
+        ]);
 
         $result = [];
-        foreach ($response as $customer) {
-            $result[] = $this->buildCustomerResource($customer);
+        foreach ($response as $item) {
+            if (!$item instanceof \Recurly\Resources\Account) {
+               continue;
+            }
+
+            $result[$item->getId()] = $this->buildCustomerResource($item);
         }
 
         return $result;
