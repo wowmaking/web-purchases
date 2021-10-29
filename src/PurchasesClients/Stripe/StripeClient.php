@@ -2,6 +2,7 @@
 
 namespace Wowmaking\WebPurchases\PurchasesClients\Stripe;
 
+use Stripe\Stripe;
 use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
 use Wowmaking\WebPurchases\Resources\Entities\Customer;
 use Wowmaking\WebPurchases\Resources\Entities\Price;
@@ -10,6 +11,7 @@ use \Stripe\StripeClient as Provider;
 
 class StripeClient extends PurchasesClient
 {
+
     public function loadProvider()
     {
         $provider = new Provider($this->getSecretKey());
@@ -96,7 +98,8 @@ class StripeClient extends PurchasesClient
     public function getSubscriptions(string $customerId): array
     {
         $response = $this->getProvider()->subscriptions->all([
-            'customer' => $customerId
+            'customer' => $customerId,
+            'status' => 'all'
         ]);
 
         $subscriptions = [];
@@ -169,7 +172,7 @@ class StripeClient extends PurchasesClient
         $customer = new Customer();
         $customer->setId($providerResponse->id);
         $customer->setEmail($providerResponse->email);
-        $customer->setProviderResponse($providerResponse);
+        $customer->setProviderResponse($providerResponse->toArray());
 
         return $customer;
     }
@@ -194,9 +197,13 @@ class StripeClient extends PurchasesClient
         $subscription->setAmount($providerResponse->plan->amount_paid / 100);
         $subscription->setCustomerId($customer->getId());
         $subscription->setCreatedAt(date('Y-m-d H:i:s', $providerResponse->created));
+        $subscription->setTrialStartAt(isset($providerResponse->trial_start) ? date('Y-m-d H:i:s', $providerResponse->trial_start) : null);
+        $subscription->setTrialEndAt(isset($providerResponse->trial_end) ? date('Y-m-d H:i:s', $providerResponse->trial_end) : null);
         $subscription->setExpireAt(isset($providerResponse->ended_at) ? date('Y-m-d H:i:s', $providerResponse->ended_at) : null);
+        $subscription->setCanceledAt(isset($providerResponse->canceled_at) ? date('Y-m-d H:i:s', $providerResponse->canceled_at) : null);
         $subscription->setState($providerResponse->status);
-        $subscription->setProviderResponse($providerResponse);
+        $subscription->setIsActive(in_array($providerResponse->status, [\Stripe\Subscription::STATUS_ACTIVE, \Stripe\Subscription::STATUS_TRIALING]));
+        $subscription->setProviderResponse($providerResponse->toArray());
 
         return $subscription;
     }

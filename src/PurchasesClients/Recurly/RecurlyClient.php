@@ -185,11 +185,16 @@ class RecurlyClient extends PurchasesClient
         $subscription->setAmount($providerResponse->getUnitAmount());
         $subscription->setCustomerId($providerResponse->getAccount()->getCode()); // recurly puts id in the code field! WTF????
         $subscription->setCreatedAt($providerResponse->getCreatedAt());
+        $subscription->setTrialStartAt($providerResponse->getTrialStartedAt());
+        $subscription->setTrialEndAt($providerResponse->getTrialEndsAt());
         $subscription->setExpireAt($providerResponse->getExpiresAt());
+        $subscription->setCanceledAt($providerResponse->getCanceledAt());
         $subscription->setState($providerResponse->getState());
+        $subscription->setIsActive(in_array($providerResponse->getState(), ['active', 'in_trial']));
+        $subscription->setIsActive($providerResponse->getState());
 
         try {
-            $subscription->setProviderResponse(json_decode($providerResponse->getResponse()->getRawResponse()));
+            $subscription->setProviderResponse(json_decode($providerResponse->getResponse()->getRawResponse(), true));
         } catch (\TypeError $e) {}
 
         return $subscription;
