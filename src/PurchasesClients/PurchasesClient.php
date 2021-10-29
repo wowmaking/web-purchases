@@ -117,6 +117,8 @@ abstract class PurchasesClient implements PurchasesClientInterface
 
     abstract public function createCustomer(array $data): Customer;
 
+    abstract public function getCustomers(array $params): array;
+
     abstract public function getCustomer(string $customerId): Customer;
 
     abstract public function updateCustomer(string $customerId, array $data): Customer;

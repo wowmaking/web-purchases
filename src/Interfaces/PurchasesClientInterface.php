@@ -19,6 +19,11 @@ interface PurchasesClientInterface
     public function createCustomer(array $data): Customer;
 
     /**
+     * @return Customer[]
+     */
+    public function getCustomers(array $params): array;
+
+    /**
      * @param string $customerId
      * @return Customer
      */

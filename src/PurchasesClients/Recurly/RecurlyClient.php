@@ -53,6 +53,35 @@ class RecurlyClient extends PurchasesClient
     }
 
     /**
+     * @param array $params
+     * @return Customer[]
+     * @throws \Exception
+     */
+    public function getCustomers($params): array
+    {
+        $response = $this->getProvider()->listAccounts($params);
+
+        $result = [];
+        foreach ($response as $customer) {
+            $result[] = $this->buildCustomerResource($customer);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param string $customerId
+     * @return Customer
+     * @throws \Exception
+     */
+    public function getCustomer(string $customerId): Customer
+    {
+        $response = $this->getProvider()->getAccount($customerId);
+
+        return $this->buildCustomerResource($response);
+    }
+
+    /**
      * @param array $data
      * @return Customer
      * @throws \Exception
@@ -82,18 +111,6 @@ class RecurlyClient extends PurchasesClient
     public function updateCustomer(string $customerId, array $data): Customer
     {
         $response = $this->getProvider()->updateAccount($customerId, $data);
-
-        return $this->buildCustomerResource($response);
-    }
-
-    /**
-     * @param string $customerId
-     * @return Customer
-     * @throws \Exception
-     */
-    public function getCustomer(string $customerId): Customer
-    {
-        $response = $this->getProvider()->getAccount($customerId);
 
         return $this->buildCustomerResource($response);
     }

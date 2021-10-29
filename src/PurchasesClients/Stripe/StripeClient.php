@@ -2,7 +2,6 @@
 
 namespace Wowmaking\WebPurchases\PurchasesClients\Stripe;
 
-use Stripe\Stripe;
 use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
 use Wowmaking\WebPurchases\Resources\Entities\Customer;
 use Wowmaking\WebPurchases\Resources\Entities\Price;
@@ -54,15 +53,20 @@ class StripeClient extends PurchasesClient
     }
 
     /**
-     * @param array $data
-     * @return Customer
+     * @param $params
+     * @return Customer[]
      * @throws \Stripe\Exception\ApiErrorException
      */
-    public function createCustomer(array $data): Customer
+    public function getCustomers($params): array
     {
-        $response = $this->getProvider()->customers->create($data);
+        $response = $this->getProvider()->customers->all($params);
 
-        return $this->buildCustomerResource($response);
+        $result = [];
+        foreach ($response as $customer) {
+            $result[] = $this->buildCustomerResource($customer);
+        }
+
+        return $result;
     }
 
     /**
@@ -73,6 +77,18 @@ class StripeClient extends PurchasesClient
     public function getCustomer(string $customerId): Customer
     {
         $response = $this->getProvider()->customers->retrieve($customerId);
+
+        return $this->buildCustomerResource($response);
+    }
+
+    /**
+     * @param array $data
+     * @return Customer
+     * @throws \Stripe\Exception\ApiErrorException
+     */
+    public function createCustomer(array $data): Customer
+    {
+        $response = $this->getProvider()->customers->create($data);
 
         return $this->buildCustomerResource($response);
     }
