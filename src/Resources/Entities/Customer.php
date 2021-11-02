@@ -10,6 +10,8 @@ class Customer implements ResourcesEntityInterface
 
     public $email;
 
+    public $provider;
+
     public $provider_response;
 
     /**
@@ -42,6 +44,22 @@ class Customer implements ResourcesEntityInterface
     public function setEmail($email): void
     {
         $this->email = $email;
+    }
+
+    /**
+     * @return string
+     */
+    public function getProvider(): string
+    {
+        return $this->provider;
+    }
+
+    /**
+     * @param string $provider
+     */
+    public function setProvider(string $provider): void
+    {
+        $this->provider = $provider;
     }
 
     /**

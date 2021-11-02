@@ -30,6 +30,8 @@ class Subscription implements ResourcesEntityInterface
 
     public $is_active;
 
+    public $provider;
+
     public $provider_response;
 
     /**
@@ -207,6 +209,22 @@ class Subscription implements ResourcesEntityInterface
     public function setState(?string $state): void
     {
         $this->state = $state;
+    }
+
+    /**
+     * @return string
+     */
+    public function getProvider(): string
+    {
+        return $this->provider;
+    }
+
+    /**
+     * @param string $provider
+     */
+    public function setProvider(string $provider): void
+    {
+        $this->provider = $provider;
     }
 
     /**

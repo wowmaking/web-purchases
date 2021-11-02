@@ -192,6 +192,7 @@ class StripeClient extends PurchasesClient
         $customer = new Customer();
         $customer->setId($providerResponse->id);
         $customer->setEmail($providerResponse->email);
+        $customer->setProvider(PurchasesClient::PAYMENT_SERVICE_STRIPE);
         $customer->setProviderResponse($providerResponse->toArray());
 
         return $customer;
@@ -223,6 +224,7 @@ class StripeClient extends PurchasesClient
         $subscription->setCanceledAt(isset($providerResponse->canceled_at) ? date('Y-m-d H:i:s', $providerResponse->canceled_at) : null);
         $subscription->setState($providerResponse->status);
         $subscription->setIsActive(in_array($providerResponse->status, [\Stripe\Subscription::STATUS_ACTIVE, \Stripe\Subscription::STATUS_TRIALING]));
+        $subscription->setProvider(PurchasesClient::PAYMENT_SERVICE_STRIPE);
         $subscription->setProviderResponse($providerResponse->toArray());
 
         return $subscription;
