@@ -3,14 +3,16 @@
 namespace Wowmaking\WebPurchases\Interfaces;
 
 use Wowmaking\WebPurchases\Resources\Entities\Customer;
+use Wowmaking\WebPurchases\Resources\Entities\Price;
 use Wowmaking\WebPurchases\Resources\Entities\Subscription;
 
 interface PurchasesClientInterface
 {
     /**
-     * @return array
+     * @param array $pricesIds
+     * @return Price[]
      */
-    public function getPrices(): array;
+    public function getPrices(array $pricesIds = []): array;
 
     /**
      * @param array $data
@@ -50,7 +52,7 @@ interface PurchasesClientInterface
 
     /**
      * @param string $customerId
-     * @return array
+     * @return Subscription[]
      */
     public function getSubscriptions(string $customerId): array;
 

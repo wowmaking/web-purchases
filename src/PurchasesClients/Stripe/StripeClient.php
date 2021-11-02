@@ -27,17 +27,25 @@ class StripeClient extends PurchasesClient
     }
 
     /**
-     * @return array
+     * @param array $pricesIds
+     * @return Price[]
      * @throws \Stripe\Exception\ApiErrorException
      */
-    public function getPrices(): array
+    public function getPrices(array $pricesIds = []): array
     {
-        $response = $this->getProvider()->prices->all(['expand' => ['data.tiers']]);
+        $response = $this->getProvider()->prices->all([
+            'active' => true,
+            'expand' => ['data.tiers']
+        ]);
 
         $prices = [];
 
         /** @var \Stripe\Price $item */
         foreach ($response as $item) {
+
+            if (count($pricesIds) && !in_array($item->id, $pricesIds)) {
+                continue;
+            }
 
             $price = new Price();
             $price->setId($item->id);

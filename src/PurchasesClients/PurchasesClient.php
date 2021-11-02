@@ -113,7 +113,7 @@ abstract class PurchasesClient implements PurchasesClientInterface
         $this->fbPixel = $fbPixel;
     }
 
-    abstract public function getPrices(): array;
+    abstract public function getPrices(array $pricesIds = []): array;
 
     abstract public function createCustomer(array $data): Customer;
 

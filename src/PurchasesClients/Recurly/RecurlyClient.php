@@ -28,16 +28,29 @@ class RecurlyClient extends PurchasesClient
     }
 
     /**
+     * @param array $pricesIds
      * @return Price[]
      */
-    public function getPrices(): array
+    public function getPrices(array $pricesIds = []): array
     {
-        $response = $this->getProvider()->listPlans();
+        $response = $this->getProvider()->listPlans([
+            'params' => [
+                'state' => 'active'
+            ]
+        ]);
 
         $prices = [];
 
         /** @var Plan $item */
         foreach ($response as $item) {
+
+            if (!isset($item->getCurrencies()[0])) {
+                continue;
+            }
+
+            if (count($pricesIds) && !in_array($item->getCode(), $pricesIds)) {
+                continue;
+            }
 
             $price = new Price();
             $price->setId($item->getCode());
