@@ -217,6 +217,7 @@ class RecurlyClient extends PurchasesClient
 
         $subscription = new Subscription();
         $subscription->setTransactionId($providerResponse->getId());
+        $subscription->setPlanName($providerResponse->getPlan()->getCode());
         $subscription->setEmail($providerResponse->getAccount()->getEmail());
         $subscription->setCurrency($providerResponse->getCurrency());
         $subscription->setAmount($providerResponse->getUnitAmount());

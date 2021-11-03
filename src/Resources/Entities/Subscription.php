@@ -8,6 +8,8 @@ class Subscription implements ResourcesEntityInterface
 {
     public $transaction_id;
 
+    public $plan_name;
+
     public $email;
 
     public $currency;
@@ -48,6 +50,22 @@ class Subscription implements ResourcesEntityInterface
     public function setTransactionId(?string $transaction_id)
     {
         $this->transaction_id = $transaction_id;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getPlanName(): ?string
+    {
+        return $this->plan_name;
+    }
+
+    /**
+     * @param string|null $plan_name
+     */
+    public function setPlanName(?string $plan_name): void
+    {
+        $this->plan_name = $plan_name;
     }
 
     /**

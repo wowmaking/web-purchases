@@ -221,6 +221,7 @@ class StripeClient extends PurchasesClient
 
         $subscription = new Subscription();
         $subscription->setTransactionId($providerResponse->id);
+        $subscription->setPlanName($providerResponse->plan->product);
         $subscription->setEmail($customer->getEmail());
         $subscription->setCurrency(strtoupper($providerResponse->plan->currency));
         $subscription->setAmount($providerResponse->plan->amount_paid / 100);
