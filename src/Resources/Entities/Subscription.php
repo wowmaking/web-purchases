@@ -43,10 +43,9 @@ class Subscription implements ResourcesEntityInterface
     }
 
     /**
-     * @param $transaction_id
-     * @return string|null
+     * @param string|null $transaction_id
      */
-    public function setTransactionId($transaction_id):? string
+    public function setTransactionId(?string $transaction_id)
     {
         $this->transaction_id = $transaction_id;
     }
