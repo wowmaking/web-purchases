@@ -8,6 +8,13 @@ composer require wowmaking/web-purchases
 - stripe 
 - recurly 
 
+# Require
+- "php": ">=7.2.0" 
+- "stripe/stripe-php": "^7" 
+- "recurly/recurly-client": "^4" 
+- "guzzlehttp/guzzle": "^7.3" 
+- "facebook/php-business-sdk": "^12.0"
+
 # Entities 
 
 ## Client
@@ -51,7 +58,7 @@ $webPurchases = WebPurchases::service(array $clientParams, ?array $subtruckParam
 use Wowmaking\WebPurchases\Resources\Entities\Price;
 
 
-$prices = $webPurchases->getPurchasesClient()->getPrices();
+$prices = $webPurchases->getPurchasesClient()->getPrices(array $filterPricesIds = []));
 ```
 
 
@@ -60,30 +67,40 @@ $prices = $webPurchases->getPurchasesClient()->getPrices();
 #### Fields
 - id
 - email
+- provider
+- provider_response
 
 #### Methods
 ```
 use Wowmaking\WebPurchases\Resources\Entities\Customer;
 
 
-$customer = $webPurchases->getPurchasesClient()->createCustomer($params); 
+$customer = $webPurchases->getPurchasesClient()->createCustomer(array $data); 
 
-$customer = $webPurchases->getPurchasesClient()->getCustomer($customerId);
+$customers = $webPurchases->getPurchasesClient()->getCustomers(array $params);
 
-$customer = $webPurchases->getPurchasesClient()->updateCustomer($customerId, $data);
+$customer = $webPurchases->getPurchasesClient()->getCustomer(string $customerId);
+
+$customer = $webPurchases->getPurchasesClient()->updateCustomer(string $customerId, array $data);
 ```
 
 ## Subscription
 
 #### Fields
 - transaction_id
+- plan_name
 - email
 - currency
 - amount
 - customer_id
 - created_at
+- trial_start_at
+- trial_end_at
 - expire_at
+- canceled_at
 - state
+- is_active
+- provider
 - provider_response
 
 ### Methods
@@ -92,7 +109,7 @@ $customer = $webPurchases->getPurchasesClient()->updateCustomer($customerId, $da
 ```
 use Wowmaking\WebPurchases\Resources\Entities\Subscription;
 
-$subscription = $webPurchases->getPurchasesClient()->createSubscription($params);
+$subscription = $webPurchases->getPurchasesClient()->createSubscription(array $params);
 
 !!!
 This method will automatically send an event to Subtruk and FbPixel 
@@ -104,12 +121,12 @@ when calling the service
 ```
 use Wowmaking\WebPurchases\Resources\Entities\Subscription;
 
-$subscriptions = $webPurchases->getPurchasesClient()->getSubscriptions($params);
+$subscriptions = $webPurchases->getPurchasesClient()->getSubscriptions(string $customerId);
 ```
 
 #### Cancel subscription
 ```
 use Wowmaking\WebPurchases\Resources\Entities\Subscription;
 
-$subscriptions = $webPurchases->getPurchasesClient()->cancelSubscription($params);
+$subscriptions = $webPurchases->getPurchasesClient()->cancelSubscription(string $subscriptionId);
 ```
