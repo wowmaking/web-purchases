@@ -12,6 +12,8 @@ class Customer implements ResourcesEntityInterface
 
     public $provider;
 
+    public $is_active = true;
+
     public $provider_response;
 
     /**
@@ -60,6 +62,22 @@ class Customer implements ResourcesEntityInterface
     public function setProvider(string $provider): void
     {
         $this->provider = $provider;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsActive(): bool
+    {
+        return $this->is_active;
+    }
+
+    /**
+     * @param mixed $is_active
+     */
+    public function setIsActive(bool $is_active): void
+    {
+        $this->is_active = $is_active;
     }
 
     /**

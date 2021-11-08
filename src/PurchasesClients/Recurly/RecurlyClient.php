@@ -79,7 +79,11 @@ class RecurlyClient extends PurchasesClient
         $result = [];
         foreach ($response as $item) {
             if (!$item instanceof \Recurly\Resources\Account) {
-               continue;
+                continue;
+            }
+
+            if ($item->getState() !== 'active') {
+                continue;
             }
 
             $result[$item->getId()] = $this->buildCustomerResource($item);
@@ -97,6 +101,10 @@ class RecurlyClient extends PurchasesClient
     {
         $response = $this->getProvider()->getAccount($customerId);
 
+        if (!$response instanceof \Recurly\Resources\Account) {
+            throw new NotFound('Customer not found');
+        }
+
         return $this->buildCustomerResource($response);
     }
 
@@ -109,14 +117,10 @@ class RecurlyClient extends PurchasesClient
     {
         $code = md5($data['email']);
 
-        try {
-            $response = $this->getProvider()->getAccount('code-' . $code);
-        } catch (NotFound $e) {
-            $response = $this->getProvider()->createAccount([
-                'email' => $data['email'],
-                'code' => $code
-            ]);
-        }
+        $response = $this->getProvider()->createAccount([
+            'email' => $data['email'],
+            'code' => $code
+        ]);
 
         return $this->buildCustomerResource($response);
     }
@@ -200,6 +204,7 @@ class RecurlyClient extends PurchasesClient
         $customer = new Customer();
         $customer->setId($providerResponse->getId()); // recurly puts id in the id field! IT`S GREAT
         $customer->setEmail($providerResponse->getEmail());
+        $customer->setIsActive($providerResponse->getState() === 'active');
         $customer->setProvider(PurchasesClient::PAYMENT_SERVICE_RECURLY);
 
         try {
