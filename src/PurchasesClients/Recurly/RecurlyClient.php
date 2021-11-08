@@ -229,7 +229,6 @@ class RecurlyClient extends PurchasesClient
         $subscription->setCanceledAt($providerResponse->getCanceledAt());
         $subscription->setState($providerResponse->getState());
         $subscription->setIsActive(in_array($providerResponse->getState(), ['active', 'in_trial']));
-        $subscription->setIsActive($providerResponse->getState());
         $subscription->setProvider(PurchasesClient::PAYMENT_SERVICE_RECURLY);
 
         try {
