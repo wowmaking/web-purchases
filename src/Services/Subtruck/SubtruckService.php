@@ -86,7 +86,7 @@ class SubtruckService
             'body' => [
                 'idfm' => $this->getIdfm(),
                 'token' => $this->getToken(),
-                'transaction' => json_encode($subscription->getData()),
+                'transaction' => json_encode($subscription->getProviderResponse()),
             ]
         ]);
     }

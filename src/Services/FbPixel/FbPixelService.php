@@ -3,7 +3,6 @@
 namespace Wowmaking\WebPurchases\Services\FbPixel;
 
 use FacebookAds\Api;
-use FacebookAds\Logger\CurlLogger;
 use FacebookAds\Object\ServerSide\ActionSource;
 use FacebookAds\Object\ServerSide\CustomData;
 use FacebookAds\Object\ServerSide\Event;
