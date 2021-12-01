@@ -286,7 +286,7 @@ class FbPixelService
     private function createEvent(UserData $userData, CustomData $customData): Event
     {
         return (new Event([
-            'event_name' => 'Purchase',
+            'event_name' => 'custom_purchase',
             'event_time' => time(),
             'event_source_url' => $this->getDomain(),
             'user_data' => $userData,
