@@ -75,19 +75,32 @@ class SubtruckService
 
     /**
      * @param Subscription $subscription
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @return false
      */
     public function track(Subscription $subscription)
     {
-        $response = (new Client())->request('POST', 'https://subtruck.magnus.ms/api/v2/transaction/', [
-            'headers' => [
-                'Content-Type' => 'application/json'
-            ],
-            'body' => [
-                'idfm' => $this->getIdfm(),
-                'token' => $this->getToken(),
-                'transaction' => json_encode($subscription->getProviderResponse()),
-            ]
-        ]);
+        $transaction = [
+            'order_id' => $subscription->getTransactionId(),
+            'payment_service' => $subscription->getProvider(),
+            'product_id' => $subscription->getPlanName(),
+            'internal_uid' => $subscription->getEmail(),
+        ];
+
+        try {
+            $response = (new Client())->request('POST', 'https://subtruck.magnus.ms/api/v2/transaction/', [
+                'headers' => [
+                    'Content-Type' => 'application/json'
+                ],
+                'body' => [
+                    'idfm' => $this->getIdfm(),
+                    'token' => $this->getToken(),
+                    'transaction' => json_encode($transaction),
+                ]
+            ]);
+        } catch (\GuzzleHttp\Exception\GuzzleException $e) {
+            return false;
+        }
+
+        return $response;
     }
 }

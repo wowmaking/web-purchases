@@ -96,7 +96,7 @@ class FbPixelService
     /**
      * @return int
      */
-    public function getAccessToken(): int
+    public function getAccessToken(): string
     {
         return $this->accessToken;
     }
