@@ -70,7 +70,7 @@ class RecurlyClient extends PurchasesClient
      * @return Customer[]
      * @throws \Exception
      */
-    public function getCustomers($params): array
+    public function getCustomers(array $params): array
     {
         $response = $this->getProvider()->listAccounts([
             'params' => $params

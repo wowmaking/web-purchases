@@ -91,11 +91,11 @@ class SubtruckService
                 'headers' => [
                     'Content-Type' => 'application/json'
                 ],
-                'body' => [
+                'body' => json_encode([
                     'idfm' => $this->getIdfm(),
                     'token' => $this->getToken(),
-                    'transaction' => json_encode($transaction),
-                ]
+                    'transaction' => $transaction,
+                ]),
             ]);
         } catch (\GuzzleHttp\Exception\GuzzleException $e) {
             return false;

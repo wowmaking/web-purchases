@@ -65,7 +65,7 @@ class StripeClient extends PurchasesClient
      * @return Customer[]
      * @throws \Stripe\Exception\ApiErrorException
      */
-    public function getCustomers($params): array
+    public function getCustomers(array $params): array
     {
         $response = $this->getProvider()->customers->all($params);
 
