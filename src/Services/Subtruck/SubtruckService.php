@@ -75,7 +75,7 @@ class SubtruckService
 
     /**
      * @param Subscription $subscription
-     * @return false
+     * @return \Exception|\GuzzleHttp\Exception\GuzzleException
      */
     public function track(Subscription $subscription)
     {
@@ -98,7 +98,7 @@ class SubtruckService
                 ]),
             ]);
         } catch (\GuzzleHttp\Exception\GuzzleException $e) {
-            return false;
+            return $e;
         }
 
         return $response;

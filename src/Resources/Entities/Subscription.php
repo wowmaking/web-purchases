@@ -36,6 +36,8 @@ class Subscription implements ResourcesEntityInterface
 
     public $provider_response;
 
+    private $tracks = [];
+
     /**
      * @return string|null
      */
@@ -274,5 +276,21 @@ class Subscription implements ResourcesEntityInterface
     public function setIsActive(bool $is_active): void
     {
         $this->is_active = $is_active;
+    }
+
+    /**
+     * @return array
+     */
+    public function getTracks(): array
+    {
+        return $this->tracks;
+    }
+
+    /**
+     * @param array $tracks
+     */
+    public function setTracks(array $tracks): void
+    {
+        $this->tracks = $tracks;
     }
 }

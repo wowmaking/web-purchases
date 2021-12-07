@@ -129,13 +129,17 @@ abstract class PurchasesClient implements PurchasesClientInterface
 
         $subscription = $this->buildSubscriptionResource($response);
 
+        $tracks = [];
+
         if ($this->getSubtruck()) {
-            $this->getSubtruck()->track($subscription);
+            $tracks['subtruck'] = $this->getSubtruck()->track($subscription);
         }
 
         if ($this->getFbPixel()) {
-            $this->getFbPixel()->track($subscription);
+            $tracks['fbPixel'] = $this->getFbPixel()->track($subscription);
         }
+
+        $subscription->setTracks($tracks);
 
         return $subscription;
     }
