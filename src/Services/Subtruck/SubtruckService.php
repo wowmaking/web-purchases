@@ -82,8 +82,7 @@ class SubtruckService
         $transaction = [
             'order_id' => $subscription->getTransactionId(),
             'payment_service' => $subscription->getProvider(),
-            'product_id' => $subscription->getPlanName(),
-            'internal_uid' => $subscription->getEmail(),
+            'product_id' => $subscription->getPlanName()
         ];
 
         try {
@@ -94,6 +93,7 @@ class SubtruckService
                 'body' => json_encode([
                     'idfm' => $this->getIdfm(),
                     'token' => $this->getToken(),
+                    'internal_uid' => $subscription->getEmail(),
                     'transaction' => $transaction,
                 ]),
             ]);
