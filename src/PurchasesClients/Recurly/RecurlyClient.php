@@ -58,14 +58,14 @@ class RecurlyClient extends PurchasesClient
      */
     public function createCustomer(array $data): Customer
     {
-        $code = md5($data['email']);
+        $code = $data['code'] ?? md5($data['email']);
 
         try {
             $response = $this->getProvider()->getAccount('code-' . $code);
         } catch (RecurlyError $e) {
             $response = $this->getProvider()->createAccount([
-                'email' => $code,
-                'code' => md5($data['email'])
+                'email' => $data['email'],
+                'code' => $code
             ]);
         }
 
