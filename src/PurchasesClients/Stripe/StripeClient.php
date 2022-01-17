@@ -10,6 +10,7 @@ use \Stripe\StripeClient as Provider;
 
 class StripeClient extends PurchasesClient
 {
+
     public function loadProvider()
     {
         $provider = new Provider($this->getSecretKey());
@@ -26,17 +27,25 @@ class StripeClient extends PurchasesClient
     }
 
     /**
-     * @return array
+     * @param array $pricesIds
+     * @return Price[]
      * @throws \Stripe\Exception\ApiErrorException
      */
-    public function getPrices(): array
+    public function getPrices(array $pricesIds = []): array
     {
-        $response = $this->getProvider()->prices->all(['expand' => ['data.tiers']]);
+        $response = $this->getProvider()->prices->all([
+            'active' => true,
+            'expand' => ['data.tiers']
+        ]);
 
         $prices = [];
 
         /** @var \Stripe\Price $item */
         foreach ($response as $item) {
+
+            if (count($pricesIds) && !in_array($item->id, $pricesIds)) {
+                continue;
+            }
 
             $price = new Price();
             $price->setId($item->id);
@@ -52,19 +61,24 @@ class StripeClient extends PurchasesClient
     }
 
     /**
-     * @param array $data
-     * @return Customer
+     * @param $params
+     * @return Customer[]
      * @throws \Stripe\Exception\ApiErrorException
      */
-    public function createCustomer(array $data): Customer
+    public function getCustomers(array $params): array
     {
-        $response = $this->getProvider()->customers->create($data);
+        $response = $this->getProvider()->customers->all($params);
 
-        $customer = new Customer();
-        $customer->setId($response->id);
-        $customer->setEmail($response->email);
+        $result = [];
+        foreach ($response as $item) {
+            if (!$item instanceof \Stripe\Customer) {
+                continue;
+            }
 
-        return $customer;
+            $result[$item->id] = $this->buildCustomerResource($item);
+        }
+
+        return $result;
     }
 
     /**
@@ -76,10 +90,19 @@ class StripeClient extends PurchasesClient
     {
         $response = $this->getProvider()->customers->retrieve($customerId);
 
-        $customer = new Customer();
-        $customer->setId($response->id);
+        return $this->buildCustomerResource($response);
+    }
 
-        return $customer;
+    /**
+     * @param array $data
+     * @return Customer
+     * @throws \Stripe\Exception\ApiErrorException
+     */
+    public function createCustomer(array $data): Customer
+    {
+        $response = $this->getProvider()->customers->create($data);
+
+        return $this->buildCustomerResource($response);
     }
 
     /**
@@ -92,10 +115,7 @@ class StripeClient extends PurchasesClient
     {
         $response = $this->getProvider()->customers->update($customerId, $data);
 
-        $customer = new Customer();
-        $customer->setId($response->id);
-
-        return $customer;
+        return $this->buildCustomerResource($response);
     }
 
     /**
@@ -106,7 +126,8 @@ class StripeClient extends PurchasesClient
     public function getSubscriptions(string $customerId): array
     {
         $response = $this->getProvider()->subscriptions->all([
-            'customer' => $customerId
+            'customer' => $customerId,
+            'status' => 'all'
         ]);
 
         $subscriptions = [];
@@ -167,25 +188,53 @@ class StripeClient extends PurchasesClient
 
     /**
      * @param $providerResponse
+     * @return Customer
+     * @throws \Exception
+     */
+    public function buildCustomerResource($providerResponse): Customer
+    {
+        if (!$providerResponse instanceof \Stripe\Customer) {
+            throw new \Exception('Invalid data object for build customer resource, must be \Stripe\Customer');
+        }
+
+        $customer = new Customer();
+        $customer->setId($providerResponse->id);
+        $customer->setEmail($providerResponse->email);
+        $customer->setProvider(PurchasesClient::PAYMENT_SERVICE_STRIPE);
+        $customer->setProviderResponse($providerResponse->toArray());
+
+        return $customer;
+    }
+
+    /**
+     * @param $providerResponse
      * @return Subscription
      * @throws \Exception
      */
     public function buildSubscriptionResource($providerResponse): Subscription
     {
         if (!$providerResponse instanceof \Stripe\Subscription) {
-            throw new \Exception('Invalid data object for build subscription resource');
+            throw new \Exception('Invalid data object for build subscription resource, must be \Stripe\Subscription');
         }
+
+        $customer = $this->getCustomer($providerResponse->customer);
 
         $subscription = new Subscription();
         $subscription->setTransactionId($providerResponse->id);
-        $subscription->setEmail($providerResponse->customer->email);
-        $subscription->setCurrency($providerResponse->latest_invoice->currency);
-        $subscription->setAmount($providerResponse->latest_invoice->amount_paid / 100);
-        $subscription->setCustomerId($providerResponse->customer->id);
+        $subscription->setPlanName($providerResponse->plan->product);
+        $subscription->setEmail($customer->getEmail());
+        $subscription->setCurrency(strtoupper($providerResponse->plan->currency));
+        $subscription->setAmount($providerResponse->plan->amount_paid / 100);
+        $subscription->setCustomerId($customer->getId());
         $subscription->setCreatedAt(date('Y-m-d H:i:s', $providerResponse->created));
+        $subscription->setTrialStartAt(isset($providerResponse->trial_start) ? date('Y-m-d H:i:s', $providerResponse->trial_start) : null);
+        $subscription->setTrialEndAt(isset($providerResponse->trial_end) ? date('Y-m-d H:i:s', $providerResponse->trial_end) : null);
         $subscription->setExpireAt(isset($providerResponse->ended_at) ? date('Y-m-d H:i:s', $providerResponse->ended_at) : null);
+        $subscription->setCanceledAt(isset($providerResponse->canceled_at) ? date('Y-m-d H:i:s', $providerResponse->canceled_at) : null);
         $subscription->setState($providerResponse->status);
-        $subscription->setProviderResponse($providerResponse);
+        $subscription->setIsActive(in_array($providerResponse->status, [\Stripe\Subscription::STATUS_ACTIVE, \Stripe\Subscription::STATUS_TRIALING]));
+        $subscription->setProvider(PurchasesClient::PAYMENT_SERVICE_STRIPE);
+        $subscription->setProviderResponse($providerResponse->toArray());
 
         return $subscription;
     }

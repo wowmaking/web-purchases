@@ -3,7 +3,7 @@
 namespace Wowmaking\WebPurchases\PurchasesClients\Recurly;
 
 use Recurly\Client as Provider;
-use Recurly\RecurlyError;
+use Recurly\Errors\NotFound;
 use Recurly\Resources\Plan;
 use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
 use Wowmaking\WebPurchases\Resources\Entities\Customer;
@@ -28,16 +28,29 @@ class RecurlyClient extends PurchasesClient
     }
 
     /**
+     * @param array $pricesIds
      * @return Price[]
      */
-    public function getPrices(): array
+    public function getPrices(array $pricesIds = []): array
     {
-        $response = $this->getProvider()->listPlans();
+        $response = $this->getProvider()->listPlans([
+            'params' => [
+                'state' => 'active'
+            ]
+        ]);
 
         $prices = [];
 
         /** @var Plan $item */
         foreach ($response as $item) {
+
+            if (!isset($item->getCurrencies()[0])) {
+                continue;
+            }
+
+            if (count($pricesIds) && !in_array($item->getCode(), $pricesIds)) {
+                continue;
+            }
 
             $price = new Price();
             $price->setId($item->getCode());
@@ -53,56 +66,76 @@ class RecurlyClient extends PurchasesClient
     }
 
     /**
-     * @param array $data
-     * @return Customer
+     * @param array $params
+     * @return Customer[]
+     * @throws \Exception
      */
-    public function createCustomer(array $data): Customer
+    public function getCustomers(array $params): array
     {
-        $code = $data['code'] ?? md5($data['email']);
+        $response = $this->getProvider()->listAccounts([
+            'params' => $params
+        ]);
 
-        try {
-            $response = $this->getProvider()->getAccount('code-' . $code);
-        } catch (RecurlyError $e) {
-            $response = $this->getProvider()->createAccount([
-                'email' => $data['email'],
-                'code' => $code
-            ]);
+        $result = [];
+        foreach ($response as $item) {
+            if (!$item instanceof \Recurly\Resources\Account) {
+                continue;
+            }
+
+            if ($item->getState() !== 'active') {
+                continue;
+            }
+
+            $result[$item->getId()] = $this->buildCustomerResource($item);
         }
 
-        $customer = new Customer();
-        $customer->setId($response->getId());
-        $customer->setEmail($response->getEmail());
-
-        return $customer;
-    }
-
-    /**
-     * @param string $customerId
-     * @param array $data
-     * @return Customer
-     */
-    public function updateCustomer(string $customerId, array $data): Customer
-    {
-        $response = $this->getProvider()->updateAccount($customerId, $data);
-
-        $customer = new Customer();
-        $customer->setId($response->getId());
-
-        return $customer;
+        return $result;
     }
 
     /**
      * @param string $customerId
      * @return Customer
+     * @throws \Exception
      */
     public function getCustomer(string $customerId): Customer
     {
         $response = $this->getProvider()->getAccount($customerId);
 
-        $customer = new Customer();
-        $customer->setId($response->getId());
+        if (!$response instanceof \Recurly\Resources\Account) {
+            throw new NotFound('Customer not found');
+        }
 
-        return $customer;
+        return $this->buildCustomerResource($response);
+    }
+
+    /**
+     * @param array $data
+     * @return Customer
+     * @throws \Exception
+     */
+    public function createCustomer(array $data): Customer
+    {
+        $code = $data['code'] ?? md5($data['email']);
+
+        $response = $this->getProvider()->createAccount([
+            'email' => $data['email'],
+            'code' => $code
+        ]);
+
+        return $this->buildCustomerResource($response);
+    }
+
+    /**
+     * @param string $customerId
+     * @param array $data
+     * @return Customer
+     * @throws \Exception
+     */
+    public function updateCustomer(string $customerId, array $data): Customer
+    {
+        $response = $this->getProvider()->updateAccount($customerId, $data);
+
+        return $this->buildCustomerResource($response);
     }
 
     /**
@@ -116,10 +149,12 @@ class RecurlyClient extends PurchasesClient
 
         $subscriptions = [];
 
-        /** @var \Recurly\Resources\Subscription $item */
-        foreach ($response as $item) {
-            $subscriptions[] = $this->buildSubscriptionResource($item);
-        }
+        try {
+            /** @var \Recurly\Resources\Subscription $item */
+            foreach ($response as $item) {
+                $subscriptions[] = $this->buildSubscriptionResource($item);
+            }
+        } catch (NotFound $e) {}
 
         return $subscriptions;
     }
@@ -134,6 +169,7 @@ class RecurlyClient extends PurchasesClient
             'plan_code' => $data['price_id'],
             'account' => [
                 'code' => $data['customer_id'],
+                'email' => $data['email'],
                 'billing_info' => [
                     'token_id' => $data['token_id']
                 ]
@@ -156,25 +192,53 @@ class RecurlyClient extends PurchasesClient
 
     /**
      * @param $providerResponse
-     * @return Subscription
+     * @return Customer
      * @throws \Exception
      */
+    public function buildCustomerResource($providerResponse): Customer
+    {
+        if (!$providerResponse instanceof \Recurly\Resources\Account) {
+            throw new \Exception('Invalid data object for build customer resource, must be \Recurly\Resources\Account');
+        }
+
+        $customer = new Customer();
+        $customer->setId($providerResponse->getId()); // recurly puts id in the id field! IT`S GREAT
+        $customer->setEmail($providerResponse->getEmail());
+        $customer->setIsActive($providerResponse->getState() === 'active');
+        $customer->setProvider(PurchasesClient::PAYMENT_SERVICE_RECURLY);
+
+        try {
+            $customer->setProviderResponse(json_decode($providerResponse->getResponse()->getRawResponse()));
+        } catch (\TypeError $e) {}
+
+        return $customer;
+    }
+
     public function buildSubscriptionResource($providerResponse): Subscription
     {
         if (!$providerResponse instanceof \Recurly\Resources\Subscription) {
-            throw new \Exception('Invalid data object for build subscription resource');
+            throw new \Exception('Invalid data object for build subscription resource, must be \Recurly\Resources\Subscription');
         }
 
         $subscription = new Subscription();
         $subscription->setTransactionId($providerResponse->getId());
+        $subscription->setPlanName($providerResponse->getPlan()->getCode());
         $subscription->setEmail($providerResponse->getAccount()->getEmail());
         $subscription->setCurrency($providerResponse->getCurrency());
         $subscription->setAmount($providerResponse->getUnitAmount());
-        $subscription->setCustomerId($providerResponse->getAccount()->getId());
+        $subscription->setCustomerId($providerResponse->getAccount()->getCode()); // recurly puts id in the code field! WTF????
         $subscription->setCreatedAt($providerResponse->getCreatedAt());
+        $subscription->setTrialStartAt($providerResponse->getTrialStartedAt());
+        $subscription->setTrialEndAt($providerResponse->getTrialEndsAt());
         $subscription->setExpireAt($providerResponse->getExpiresAt());
+        $subscription->setCanceledAt($providerResponse->getCanceledAt());
         $subscription->setState($providerResponse->getState());
-        $subscription->setProviderResponse($providerResponse);
+        $subscription->setIsActive(in_array($providerResponse->getState(), ['active', 'in_trial']));
+        $subscription->setProvider(PurchasesClient::PAYMENT_SERVICE_RECURLY);
+
+        try {
+            $subscription->setProviderResponse(json_decode($providerResponse->getResponse()->getRawResponse(), true));
+        } catch (\TypeError $e) {}
 
         return $subscription;
     }

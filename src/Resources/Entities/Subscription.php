@@ -8,6 +8,8 @@ class Subscription implements ResourcesEntityInterface
 {
     public $transaction_id;
 
+    public $plan_name;
+
     public $email;
 
     public $currency;
@@ -18,72 +20,100 @@ class Subscription implements ResourcesEntityInterface
 
     public $created_at;
 
+    public $trial_start_at;
+
+    public $trial_end_at;
+
     public $expire_at;
+
+    public $canceled_at;
 
     public $state;
 
-    public $providerResponse;
+    public $is_active;
+
+    public $provider;
+
+    public $provider_response;
+
+    private $tracks = [];
 
     /**
-     * @return mixed
+     * @return string|null
      */
-    public function getTransactionId()
+    public function getTransactionId(): ?string
     {
         return $this->transaction_id;
     }
 
     /**
-     * @param mixed $transaction_id
+     * @param string|null $transaction_id
      */
-    public function setTransactionId($transaction_id): void
+    public function setTransactionId(?string $transaction_id)
     {
         $this->transaction_id = $transaction_id;
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getEmail(): string
+    public function getPlanName(): ?string
+    {
+        return $this->plan_name;
+    }
+
+    /**
+     * @param string|null $plan_name
+     */
+    public function setPlanName(?string $plan_name): void
+    {
+        $this->plan_name = $plan_name;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getEmail(): ?string
     {
         return $this->email;
     }
 
     /**
-     * @param string $email
+     * @param string|null $email
      */
-    public function setEmail(string $email): void
+    public function setEmail(?string $email): void
     {
         $this->email = $email;
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
-    public function getCurrency(): string
+    public function getCurrency(): ?string
     {
         return $this->currency;
     }
 
     /**
-     * @param string $currency
+     * @param string|null $currency
      */
-    public function setCurrency(string $currency): void
+    public function setCurrency(?string $currency): void
     {
         $this->currency = $currency;
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
-    public function getCustomerId()
+    public function getCustomerId(): ?string
     {
         return $this->customer_id;
     }
 
     /**
-     * @param $customerId
+     * @param string|null $customerId
      */
-    public function setCustomerId($customerId): void
+    public function setCustomerId(?string $customerId): void
     {
         $this->customer_id = $customerId;
     }
@@ -105,66 +135,162 @@ class Subscription implements ResourcesEntityInterface
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
-    public function getCreatedAt()
+    public function getCreatedAt(): ?string
     {
         return $this->created_at;
     }
 
     /**
-     * @param mixed $created_at
+     * @param string|null $created_at
      */
-    public function setCreatedAt($created_at): void
+    public function setCreatedAt(?string $created_at): void
     {
         $this->created_at = $created_at;
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
-    public function getExpireAt()
+    public function getTrialStartAt(): ?string
+    {
+        return $this->trial_start_at;
+    }
+
+    /**
+     * @param string|null $trial_start_at
+     */
+    public function setTrialStartAt(?string $trial_start_at): void
+    {
+        $this->trial_start_at = $trial_start_at;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getTrialEndAt(): ?string
+    {
+        return $this->trial_end_at;
+    }
+
+    /**
+     * @param string|null $trial_end_at
+     */
+    public function setTrialEndAt(?string $trial_end_at): void
+    {
+        $this->trial_end_at = $trial_end_at;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getExpireAt(): ?string
     {
         return $this->expire_at;
     }
 
     /**
-     * @param mixed $expire_at
+     * @param string|null $expire_at
      */
-    public function setExpireAt($expire_at): void
+    public function setExpireAt(?string $expire_at): void
     {
         $this->expire_at = $expire_at;
     }
 
     /**
-     * @return mixed
+     * @return string|null
      */
-    public function getState()
+    public function getCanceledAt(): ?string
+    {
+        return $this->canceled_at;
+    }
+
+    /**
+     * @param string|null $canceled_at
+     */
+    public function setCanceledAt(?string $canceled_at): void
+    {
+        $this->canceled_at = $canceled_at;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getState(): ?string
     {
         return $this->state;
     }
 
     /**
-     * @param mixed $state
+     * @param string|null $state
      */
-    public function setState($state): void
+    public function setState(?string $state): void
     {
         $this->state = $state;
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getProviderResponse()
+    public function getProvider(): string
     {
-        return $this->providerResponse;
+        return $this->provider;
     }
 
     /**
-     * @param mixed $providerResponse
+     * @param string $provider
      */
-    public function setProviderResponse($providerResponse): void
+    public function setProvider(string $provider): void
     {
-        $this->providerResponse = $providerResponse;
+        $this->provider = $provider;
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getProviderResponse(): ?array
+    {
+        return $this->provider_response;
+    }
+
+    /**
+     * @param array|null $providerResponse
+     */
+    public function setProviderResponse(?array $providerResponse): void
+    {
+        $this->provider_response = $providerResponse;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsActive(): bool
+    {
+        return $this->is_active;
+    }
+
+    /**
+     * @param mixed $is_active
+     */
+    public function setIsActive(bool $is_active): void
+    {
+        $this->is_active = $is_active;
+    }
+
+    /**
+     * @return array
+     */
+    public function getTracks(): array
+    {
+        return $this->tracks;
+    }
+
+    /**
+     * @param array $tracks
+     */
+    public function setTracks(array $tracks): void
+    {
+        $this->tracks = $tracks;
     }
 }

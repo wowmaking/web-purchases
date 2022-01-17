@@ -113,9 +113,11 @@ abstract class PurchasesClient implements PurchasesClientInterface
         $this->fbPixel = $fbPixel;
     }
 
-    abstract public function getPrices(): array;
+    abstract public function getPrices(array $pricesIds = []): array;
 
     abstract public function createCustomer(array $data): Customer;
+
+    abstract public function getCustomers(array $params): array;
 
     abstract public function getCustomer(string $customerId): Customer;
 
@@ -127,13 +129,17 @@ abstract class PurchasesClient implements PurchasesClientInterface
 
         $subscription = $this->buildSubscriptionResource($response);
 
+        $tracks = [];
+
         if ($this->getSubtruck()) {
-            $this->getSubtruck()->track($subscription);
+            $tracks['subtruck'] = $this->getSubtruck()->track($subscription);
         }
 
         if ($this->getFbPixel()) {
-            $this->getFbPixel()->track($subscription);
+            $tracks['fbPixel'] = $this->getFbPixel()->track($subscription);
         }
+
+        $subscription->setTracks($tracks);
 
         return $subscription;
     }
@@ -143,6 +149,8 @@ abstract class PurchasesClient implements PurchasesClientInterface
     abstract public function getSubscriptions(string $customerId): array;
 
     abstract public function cancelSubscription(string $subscriptionId): Subscription;
+
+    abstract public function buildCustomerResource($providerResponse): Customer;
 
     abstract public function buildSubscriptionResource($providerResponse): Subscription;
 

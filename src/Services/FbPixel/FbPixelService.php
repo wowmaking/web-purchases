@@ -3,7 +3,6 @@
 namespace Wowmaking\WebPurchases\Services\FbPixel;
 
 use FacebookAds\Api;
-use FacebookAds\Logger\CurlLogger;
 use FacebookAds\Object\ServerSide\ActionSource;
 use FacebookAds\Object\ServerSide\CustomData;
 use FacebookAds\Object\ServerSide\Event;
@@ -97,7 +96,7 @@ class FbPixelService
     /**
      * @return int
      */
-    public function getAccessToken(): int
+    public function getAccessToken(): string
     {
         return $this->accessToken;
     }
@@ -287,7 +286,7 @@ class FbPixelService
     private function createEvent(UserData $userData, CustomData $customData): Event
     {
         return (new Event([
-            'event_name' => 'Purchase',
+            'event_name' => 'custom_purchase',
             'event_time' => time(),
             'event_source_url' => $this->getDomain(),
             'user_data' => $userData,
