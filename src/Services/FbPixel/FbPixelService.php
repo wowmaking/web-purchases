@@ -275,6 +275,7 @@ class FbPixelService
             'value' => $subscriptions->getAmount(),
             'currency' => $subscriptions->getCurrency(),
             'order_id' => $subscriptions->getTransactionId(),
+            'event_id' => $subscriptions->getTransactionId(),
         ]);
     }
 
