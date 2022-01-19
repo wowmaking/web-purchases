@@ -115,7 +115,7 @@ class RecurlyClient extends PurchasesClient
      */
     public function createCustomer(array $data): Customer
     {
-        $code = md5($data['email']);
+        $code = $data['code'] ?? md5($data['email']);
 
         $response = $this->getProvider()->createAccount([
             'email' => $data['email'],
