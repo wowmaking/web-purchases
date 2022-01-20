@@ -235,7 +235,8 @@ class FbPixelService
 
         $event = $this->createEvent(
             $this->createUserData($subscriptions),
-            $this->createCustomData($subscriptions)
+            $this->createCustomData($subscriptions),
+            $subscriptions->getTransactionId()
         );
 
         $request = new EventRequest($this->getPixelId(), [
@@ -274,21 +275,22 @@ class FbPixelService
         return new CustomData([
             'value' => $subscriptions->getAmount(),
             'currency' => $subscriptions->getCurrency(),
-            'order_id' => $subscriptions->getTransactionId(),
-            'event_id' => $subscriptions->getTransactionId(),
+            'order_id' => $subscriptions->getTransactionId()
         ]);
     }
 
     /**
      * @param UserData $userData
      * @param CustomData $customData
+     * @param $eventId
      * @return Event
      */
-    private function createEvent(UserData $userData, CustomData $customData): Event
+    private function createEvent(UserData $userData, CustomData $customData, $eventId = null): Event
     {
         return (new Event([
             'event_name' => 'custom_purchase',
             'event_time' => time(),
+            'event_id' => $eventId,
             'event_source_url' => $this->getDomain(),
             'user_data' => $userData,
             'custom_data' => $customData,
