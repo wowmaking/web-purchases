@@ -12,6 +12,7 @@ abstract class PurchasesClient implements PurchasesClientInterface
 {
     public const PAYMENT_SERVICE_STRIPE = 'stripe';
     public const PAYMENT_SERVICE_RECURLY = 'recurly';
+    public const PAYMENT_SERVICE_PAYPAL = 'paypal';
 
     protected $provider;
 
@@ -31,7 +32,8 @@ abstract class PurchasesClient implements PurchasesClientInterface
     {
         return [
             self::PAYMENT_SERVICE_RECURLY,
-            self::PAYMENT_SERVICE_STRIPE
+            self::PAYMENT_SERVICE_STRIPE,
+            self::PAYMENT_SERVICE_PAYPAL
         ];
     }
 

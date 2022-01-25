@@ -2,7 +2,9 @@
 
 namespace Wowmaking\WebPurchases;
 
+use InvalidArgumentException;
 use Wowmaking\WebPurchases\Interfaces\PurchasesClientInterface;
+use Wowmaking\WebPurchases\PurchasesClients\PayPal\PayPalClient;
 use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
 use Wowmaking\WebPurchases\PurchasesClients\Recurly\RecurlyClient;
 use Wowmaking\WebPurchases\PurchasesClients\Stripe\StripeClient;
@@ -77,11 +79,11 @@ class WebPurchases
     private function resolvePurchasesClient(array $config)
     {
         if (!in_array(($config['client_type'] ?? null), PurchasesClient::getPurchasesClientsTypes())) {
-            throw new \Exception('invalid purchases client type');
+            throw new InvalidArgumentException('Invalid purchases client type.');
         }
 
         if (!isset($config['secret_key'])) {
-            throw new \Exception('invalid purchases client secret');
+            throw new InvalidArgumentException('Invalid purchases client secret.');
         }
 
         switch ($config['client_type']) {
@@ -93,8 +95,16 @@ class WebPurchases
                 $client = new RecurlyClient($config['secret_key']);
                 break;
 
+            case PurchasesClient::PAYMENT_SERVICE_PAYPAL:
+                if (!isset($config['client_id'], $config['sandbox'])) {
+                    throw new InvalidArgumentException('Required parameters for paypal clients was not provided.');
+                }
+
+                $client = new PayPalClient($config['client_id'], $config['secret_key'], $config['sandbox']);
+                break;
+
             default:
-                throw new \Exception('purchases client initialization error');
+                throw new InvalidArgumentException('Purchases client initialization error.');
         }
 
         return $client;
@@ -104,9 +114,9 @@ class WebPurchases
      * @param array $config
      * @return SubtruckService|null
      */
-    private function resolveSubtruck(array $config):? SubtruckService
+    private function resolveSubtruck(array $config): ?SubtruckService
     {
-        if (!isset($config['token']) || !isset($config['idfm'])) {
+        if (!isset($config['token'], $config['idfm'])) {
             return null;
         }
 
@@ -117,16 +127,18 @@ class WebPurchases
      * @param array $config
      * @return FbPixelService|null
      */
-    private function resolveFbPixel(array $config):? FbPixelService
+    private function resolveFbPixel(array $config): ?FbPixelService
     {
         if (
-            !isset($config['token']) ||
-            !isset($config['pixel_id']) ||
-            !isset($config['domain']) ||
-            !isset($config['ip']) ||
-            !isset($config['user_agent']) ||
-            !isset($config['fbc']) ||
-            !isset($config['fbp'])
+            !isset(
+                $config['token'],
+                $config['pixel_id'],
+                $config['domain'],
+                $config['ip'],
+                $config['user_agent'],
+                $config['fbc'],
+                $config['fbp']
+            )
         ) {
             return null;
         }

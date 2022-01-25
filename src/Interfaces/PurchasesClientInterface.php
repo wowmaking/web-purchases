@@ -8,6 +8,8 @@ use Wowmaking\WebPurchases\Resources\Entities\Subscription;
 
 interface PurchasesClientInterface
 {
+    public function isSupportsCustomers(): bool;
+
     /**
      * @param array $pricesIds
      * @return Price[]

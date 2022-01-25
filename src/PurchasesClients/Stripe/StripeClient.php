@@ -10,6 +10,10 @@ use \Stripe\StripeClient as Provider;
 
 class StripeClient extends PurchasesClient
 {
+    public function isSupportsCustomers(): bool
+    {
+        return true;
+    }
 
     public function loadProvider()
     {

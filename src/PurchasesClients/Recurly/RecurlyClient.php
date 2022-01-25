@@ -12,6 +12,11 @@ use Wowmaking\WebPurchases\Resources\Entities\Subscription;
 
 class RecurlyClient extends PurchasesClient
 {
+    public function isSupportsCustomers(): bool
+    {
+        return true;
+    }
+
     public function loadProvider()
     {
         $provider = new Provider($this->getSecretKey());
