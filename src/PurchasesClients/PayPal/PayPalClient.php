@@ -9,6 +9,7 @@ use LogicException;
 use Wowmaking\WebPurchases\Providers\PaypalProvider;
 use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
 use Wowmaking\WebPurchases\Resources\Entities\Customer;
+use Wowmaking\WebPurchases\Resources\Entities\Price;
 use Wowmaking\WebPurchases\Resources\Entities\Subscription;
 
 /**
@@ -16,8 +17,17 @@ use Wowmaking\WebPurchases\Resources\Entities\Subscription;
  */
 class PayPalClient extends PurchasesClient
 {
+    private const STATUS_ACTIVE = 'ACTIVE';
+
     private const TENURE_TYPE_TRIAL = 'TRIAL';
     private const TENURE_TYPE_REGULAR = 'REGULAR';
+
+    private const INTERVAL_UNIT_DAYS_MAP = [
+        'DAY' => 1,
+        'WEEK' => 7,
+        'MONTH' => 30,
+        'YEAR' => 365
+    ];
 
     private $clientId;
 
@@ -38,7 +48,45 @@ class PayPalClient extends PurchasesClient
 
     public function getPrices(array $pricesIds = []): array
     {
-        $this->throwNoRealization(__METHOD__);
+        $plans = $this->getProvider()->listPlans($pricesIds);
+
+        $prices = [];
+
+        foreach ($plans as $plan) {
+            if ($plan['status'] !== self::STATUS_ACTIVE) {
+                continue;
+            }
+
+            if (!isset($plan['billing_cycles']) || $plan['billing_cycles']) {
+                continue;
+            }
+
+
+            $price = new Price();
+            $price->setId($plan['id']);
+
+            $trialCycle = false;
+            foreach ($plan['billing_cycles'] as $billingCycle) {
+                if ($billingCycle['tenure_type'] === self::TENURE_TYPE_REGULAR) {
+                    $price->setAmount($billingCycle['pricing_scheme']['fixed_price']['value']);
+                    $price->setCurrency($billingCycle['pricing_scheme']['fixed_price']['currency_code']);
+                }
+
+                if ($billingCycle['tenure_type'] === self::TENURE_TYPE_TRIAL && !$trialCycle) {
+                    $trialCycle = true;
+
+                    $intervalUnit = $billingCycle['frequency']['interval_unit'];
+                    $intervalCount = $billingCycle['frequency']['interval_count'];
+
+                    $intervalDays = self::INTERVAL_UNIT_DAYS_MAP[$intervalUnit] ?? 0;
+
+                    $price->setTrialPeriodDays($intervalDays * $intervalCount);
+                    $price->setTrialPriceAmount($billingCycle['pricing_scheme']['fixed_price']['value']);
+                }
+            }
+        }
+
+        return $prices;
     }
 
     public function createCustomer(array $data): Customer
@@ -108,47 +156,32 @@ class PayPalClient extends PurchasesClient
 
     public function buildSubscriptionResource($providerResponse): Subscription
     {
-        // Getting single cycle length
-        $startDate = new DateTimeImmutable($providerResponse['start_time']);
-        $nextPaymentData = new DateTimeImmutable($providerResponse['billing_info']['next_billing_time']);
+        $trialInterval = null;
+        $regularInterval = null;
 
-        $paymentCycleLength = $startDate->diff($nextPaymentData);
+        $plans = $this->getProvider()->listPlans([$providerResponse['plan_id']]);
+        $plan = current($plans);
 
-        // Getting trial start/end & expire_at
-        $cycles = $providerResponse['billing_info']['cycle_executions'];
+        if ($plan && isset($plan['billing_cycles']) && $plan['billing_cycles']) {
+            $trialCycle = false;
+            foreach ($plan['billing_cycles'] as $billingCycle) {
+                if ($billingCycle['tenure_type'] === self::TENURE_TYPE_REGULAR) {
+                    $intervalUnit = $billingCycle['frequency']['interval_unit'];
+                    $intervalCount = $billingCycle['frequency']['interval_count'];
 
-        $trialStartsAt = null;
-        $trialEndsAt = null;
-        $expiresAt = null;
-
-        $trialCycles = 0;
-        $totalCycles = 0;
-
-        foreach ($cycles as $cycle) {
-            if ($cycle['tenure_type'] === self::TENURE_TYPE_TRIAL) {
-                if ($trialStartsAt !== null) {
-                    $trialStartsAt = $startDate->format('c');
+                    $regularInterval = DateInterval::createFromDateString("$intervalCount $intervalUnit");
                 }
 
-                $trialCycles += $cycle['total_cycles'];
-                $totalCycles += $cycle['total_cycles'];
+                if ($billingCycle['tenure_type'] === self::TENURE_TYPE_TRIAL && !$trialCycle) {
+                    $trialCycle = true;
+
+                    $intervalUnit = $billingCycle['frequency']['interval_unit'];
+                    $intervalCount = $billingCycle['frequency']['interval_count'];
+
+                    $trialInterval = DateInterval::createFromDateString("$intervalCount $intervalUnit");
+                }
             }
-
-            if ($cycle['tenure_type'] === self::TENURE_TYPE_REGULAR) {
-                $totalCycles += $cycle['total_cycles'];
-            }
         }
-
-        if ($trialCycles) {
-            $trialLength = new DateInterval(sprintf('P%dD', $paymentCycleLength->days * $trialCycles));
-            $trialEndsAt = $startDate->add($trialLength)->format('c');
-        }
-
-        if ($totalCycles) {
-            $totalLength = new DateInterval(sprintf('P%dD', $paymentCycleLength->days * $totalCycles));
-            $expiresAt = $startDate->add($totalLength)->format('c');
-        }
-
 
         $subscription = new Subscription();
 
@@ -159,11 +192,26 @@ class PayPalClient extends PurchasesClient
         $subscription->setAmount($providerResponse['shipping_amount']['value']);
         $subscription->setCustomerId($this->getCustomerIdFromCustomId($providerResponse['custom_id']));
         $subscription->setCreatedAt($providerResponse['create_time']);
-        $subscription->setTrialStartAt($trialStartsAt);
-        $subscription->setTrialEndAt($trialEndsAt);
-        $subscription->setExpireAt($expiresAt);
+
+        $startDate = new DateTimeImmutable($providerResponse['start_time']);
+
+        if ($trialInterval) {
+            $subscription->setTrialStartAt($startDate->format('c'));
+            $subscription->setTrialEndAt($startDate->add($trialInterval)->format('c'));
+        }
+
+        if ($regularInterval) {
+            $regularEnds = $startDate->add($regularInterval);
+
+            if ($trialInterval) {
+                $regularEnds = $regularEnds->add($trialInterval);
+            }
+
+            $subscription->setExpireAt($regularEnds->format('c'));
+        }
+
         $subscription->setState($providerResponse['status']);
-        $subscription->setIsActive($providerResponse['status'] === 'ACTIVE');
+        $subscription->setIsActive($providerResponse['status'] === self::STATUS_ACTIVE);
         $subscription->setProvider(PurchasesClient::PAYMENT_SERVICE_PAYPAL);
         $subscription->setProviderResponse($providerResponse);
 
