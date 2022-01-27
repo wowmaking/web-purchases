@@ -7,12 +7,14 @@ use LogicException;
 
 class PaypalProvider
 {
-    private const BASE_URL_SANDBOX = 'https://api-m.sandbox.paypal.com/v1';
-    private const BASE_URL_PROD = 'https://api-m.paypal.com/v1';
+    private const BASE_URL_SANDBOX = 'https://api-m.sandbox.paypal.com';
+    private const BASE_URL_PROD = 'https://api-m.paypal.com';
 
-    private const URL_TPL_GET_SUBSCRIPTION = '/billing/subscriptions/%s';
-    private const URL_TPL_CANCEL_SUBSCRIPTION = '/billing/subscriptions/%s/cancel';
-    private const URL_TPL_LIST_PLANS = '/billing/plans?page_size=20';
+    private const URL_TPL_TOKEN = '/v1/oauth2/token';
+    private const URL_TPL_GET_SUBSCRIPTION = '/v1/billing/subscriptions/%s';
+    private const URL_TPL_CANCEL_SUBSCRIPTION = '/v1/billing/subscriptions/%s/cancel';
+    private const URL_TPL_LIST_PLANS = '/v1/billing/plans?page_size=20';
+    private const URL_TPL_GET_PLAN = '/v1/billing/plans/%s';
 
     /**
      * @var string
@@ -46,15 +48,27 @@ class PaypalProvider
         $link = self::URL_TPL_LIST_PLANS;
 
         if ($pricesIds) {
-            $link .= '&plan_ids=' . implode(',', $pricesIds);
+            $link .= '&plan_ids='.implode(',', $pricesIds);
         }
 
-        return $this->collectAllPlans($link);
+        $plans = $this->collectAllPlans($link);
+        $detailedPlans = [];
+
+        foreach ($plans as $plan) {
+            $detailedPlans[] = $this->getPlan($plan['id']);
+        }
+
+        return $detailedPlans;
     }
 
-    private function collectAllPlans(string $link): array
+    public function getPlan(string $planId): array
     {
-        $result = $this->makeRequest('GET', $link);
+        return $this->makeRequest('GET', sprintf(self::URL_TPL_GET_PLAN, $planId));
+    }
+
+    private function collectAllPlans(string $currentLink): array
+    {
+        $result = $this->makeRequest('GET', $currentLink);
 
         $plans = $result['plans'];
 
@@ -91,9 +105,9 @@ class PaypalProvider
                     'Accept' => 'application/json',
                     'Accept-Language' => 'en_US',
                     'Content-Type' => 'application/json',
-                    'Authorization' => 'Bearer ' . $this->getAccessToken()
+                    'Authorization' => 'Bearer '.$this->getAccessToken()
                 ],
-            'body' => $body
+            'body' => json_encode($body)
         ]);
 
         return json_decode($response->getBody(), true);
@@ -112,15 +126,13 @@ class PaypalProvider
 
     private function refreshAccessToken(): void
     {
-        $basicAuth = base64_encode($this->clientId . ':' . $this->clientSecret);
-        $response = $this->httpClient->post('/oauth2/token', [
-            'headers' =>
-                [
-                    'Accept' => 'application/json',
-                    'Accept-Language' => 'en_US',
-                    'Content-Type' => 'application/json',
-                    'Authorization' => 'Basic ' . $basicAuth
-                ],
+        $response = $this->httpClient->post(self::URL_TPL_TOKEN, [
+            'auth' => [$this->clientId, $this->clientSecret],
+            'headers' => [
+                'Accept' => 'application/json',
+                'Accept-Language' => 'en_US',
+                'Content-Type' => 'application/json',
+            ],
             'body' => 'grant_type=client_credentials',
         ]);
 

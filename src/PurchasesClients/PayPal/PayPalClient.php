@@ -35,10 +35,10 @@ class PayPalClient extends PurchasesClient
 
     public function __construct(string $clientId, string $secretKey, bool $isSandbox = false)
     {
-        parent::__construct($secretKey);
-
         $this->clientId = $clientId;
         $this->isSandbox = $isSandbox;
+
+        parent::__construct($secretKey);
     }
 
     public function isSupportsCustomers(): bool
@@ -57,10 +57,9 @@ class PayPalClient extends PurchasesClient
                 continue;
             }
 
-            if (!isset($plan['billing_cycles']) || $plan['billing_cycles']) {
+            if (!isset($plan['billing_cycles']) || !$plan['billing_cycles']) {
                 continue;
             }
-
 
             $price = new Price();
             $price->setId($plan['id']);
@@ -84,6 +83,8 @@ class PayPalClient extends PurchasesClient
                     $price->setTrialPriceAmount($billingCycle['pricing_scheme']['fixed_price']['value']);
                 }
             }
+
+            $prices[] = $price;
         }
 
         return $prices;
