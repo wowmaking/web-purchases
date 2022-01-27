@@ -6,7 +6,21 @@ composer require wowmaking/web-purchases
 
 # Supported payment services
 - stripe 
-- recurly 
+- recurly
+- paypal (Not supports customers)
+
+# Clients required parameters
+### stripe
+- client_type = stripe
+- secret_key
+### recurly
+- client_type = recurly
+- secret_key
+### paypal
+- client_type = paypal
+- secret_key
+- client_id
+- sandbox
 
 # Require
 - "php": ">=7.2.0" 
