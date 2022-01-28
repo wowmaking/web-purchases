@@ -2,12 +2,8 @@
 
 namespace Wowmaking\WebPurchases;
 
+use Wowmaking\WebPurchases\Factories\PurchasesClientFactory;
 use Wowmaking\WebPurchases\Interfaces\PurchasesClientInterface;
-use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
-use Wowmaking\WebPurchases\PurchasesClients\Recurly\RecurlyClient;
-use Wowmaking\WebPurchases\PurchasesClients\Stripe\StripeClient;
-use Wowmaking\WebPurchases\Services\FbPixel\FbPixelService;
-use Wowmaking\WebPurchases\Services\Subtruck\SubtruckService;
 
 class WebPurchases
 {
@@ -42,12 +38,7 @@ class WebPurchases
      */
     protected function __construct(array $clientParams, array $subtruckParams = [], array $fbPixelParams = [])
     {
-        $purchasesClient = $this->resolvePurchasesClient($clientParams);
-
-        $purchasesClient->setSubtruck($this->resolveSubtruck($subtruckParams));
-        $purchasesClient->setFbPixel($this->resolveFbPixel($fbPixelParams));
-
-        $this->setPurchasesClient($purchasesClient);
+        $this->setPurchasesClient((new PurchasesClientFactory())->create($clientParams, $subtruckParams, $fbPixelParams));
     }
 
     /**
@@ -68,78 +59,4 @@ class WebPurchases
 
         return $this;
     }
-
-    /**
-     * @param array $config
-     * @return RecurlyClient|StripeClient
-     * @throws \Exception
-     */
-    private function resolvePurchasesClient(array $config)
-    {
-        if (!in_array(($config['client_type'] ?? null), PurchasesClient::getPurchasesClientsTypes())) {
-            throw new \Exception('invalid purchases client type');
-        }
-
-        if (!isset($config['secret_key'])) {
-            throw new \Exception('invalid purchases client secret');
-        }
-
-        switch ($config['client_type']) {
-            case PurchasesClient::PAYMENT_SERVICE_STRIPE:
-                $client = new StripeClient($config['secret_key']);
-                break;
-
-            case PurchasesClient::PAYMENT_SERVICE_RECURLY:
-                $client = new RecurlyClient($config['secret_key']);
-                break;
-
-            default:
-                throw new \Exception('purchases client initialization error');
-        }
-
-        return $client;
-    }
-
-    /**
-     * @param array $config
-     * @return SubtruckService|null
-     */
-    private function resolveSubtruck(array $config):? SubtruckService
-    {
-        if (!isset($config['token']) || !isset($config['idfm'])) {
-            return null;
-        }
-
-        return SubtruckService::service($config['token'], $config['idfm']);
-    }
-
-    /**
-     * @param array $config
-     * @return FbPixelService|null
-     */
-    private function resolveFbPixel(array $config):? FbPixelService
-    {
-        if (
-            !isset($config['token']) ||
-            !isset($config['pixel_id']) ||
-            !isset($config['domain']) ||
-            !isset($config['ip']) ||
-            !isset($config['user_agent']) ||
-            !isset($config['fbc']) ||
-            !isset($config['fbp'])
-        ) {
-            return null;
-        }
-
-        return FbPixelService::service(
-            $config['token'],
-            $config['pixel_id'],
-            $config['domain'],
-            $config['ip'],
-            $config['user_agent'],
-            $config['fbc'],
-            $config['fbp']
-        );
-    }
-
 }

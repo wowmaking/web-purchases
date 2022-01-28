@@ -10,6 +10,10 @@ use \Stripe\StripeClient as Provider;
 
 class StripeClient extends PurchasesClient
 {
+    public function isSupportsCustomers(): bool
+    {
+        return true;
+    }
 
     public function loadProvider()
     {
@@ -156,12 +160,12 @@ class StripeClient extends PurchasesClient
             'expand' => ['latest_invoice.payment_intent'],
         ];
 
-        if (isset($params['trial_period_days'])) {
+        if (isset($data['trial_period_days'])) {
             $params['trial_period_days'] = $data['trial_period_days'];
         }
 
-        if (isset($params['invoice_price_id'])) {
-            $params['add_invoice_items'][] = ['price' => $params['invoice_price_id']];
+        if (isset($data['invoice_price_id'])) {
+            $params['add_invoice_items'][] = ['price' => $data['invoice_price_id']];
         }
 
         $customer = $this->getProvider()->customers->retrieve($data['customer_id']);

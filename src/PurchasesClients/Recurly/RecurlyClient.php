@@ -12,6 +12,11 @@ use Wowmaking\WebPurchases\Resources\Entities\Subscription;
 
 class RecurlyClient extends PurchasesClient
 {
+    public function isSupportsCustomers(): bool
+    {
+        return true;
+    }
+
     public function loadProvider()
     {
         $provider = new Provider($this->getSecretKey());
@@ -115,7 +120,7 @@ class RecurlyClient extends PurchasesClient
      */
     public function createCustomer(array $data): Customer
     {
-        $code = md5($data['email']);
+        $code = $data['code'] ?? md5($data['email']);
 
         $response = $this->getProvider()->createAccount([
             'email' => $data['email'],
@@ -165,7 +170,7 @@ class RecurlyClient extends PurchasesClient
      */
     public function subscriptionCreationProcess(array $data): \Recurly\Resources\Subscription
     {
-        return $this->getProvider()->createSubscription([
+        $subscription = [
             'plan_code' => $data['price_id'],
             'account' => [
                 'code' => $data['customer_id'],
@@ -175,7 +180,13 @@ class RecurlyClient extends PurchasesClient
                 ]
             ],
             'currency' => 'USD'
-        ]);
+        ];
+
+        if (isset($data['three_d_secure_action_result_token_id'])) {
+            $subscription['account']['billing_info']['three_d_secure_action_result_token_id'] = $data['three_d_secure_action_result_token_id'];
+        }
+
+        return $this->getProvider()->createSubscription($subscription);
     }
 
     /**
