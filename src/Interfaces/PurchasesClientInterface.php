@@ -10,6 +10,8 @@ interface PurchasesClientInterface
 {
     public function isSupportsCustomers(): bool;
 
+    public function getPaymentFormData(array $attributes): array;
+
     /**
      * @param array $pricesIds
      * @return Price[]

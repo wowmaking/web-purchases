@@ -6,6 +6,7 @@ use InvalidArgumentException;
 use Wowmaking\WebPurchases\PurchasesClients\PayPal\PayPalClient;
 use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
 use Wowmaking\WebPurchases\PurchasesClients\Recurly\RecurlyClient;
+use Wowmaking\WebPurchases\PurchasesClients\Solidgate\SolidgateClient;
 use Wowmaking\WebPurchases\PurchasesClients\Stripe\StripeClient;
 use Wowmaking\WebPurchases\Services\FbPixel\FbPixelService;
 use Wowmaking\WebPurchases\Services\Subtruck\SubtruckService;
@@ -44,12 +45,24 @@ class PurchasesClientFactory
 
             case PurchasesClient::PAYMENT_SERVICE_PAYPAL:
                 if (!isset($config['client_id'], $config['sandbox'])) {
-                    throw new InvalidArgumentException('Required parameters for paypal clients was not provided.');
+                    throw new InvalidArgumentException('Required parameters for paypal client was not provided.');
                 }
 
                 $client = new PayPalClient($config['client_id'], $config['secret_key'], $config['sandbox']);
                 break;
 
+            case PurchasesClient::PAYMENT_SERVICE_SOLIDGATE:
+                if (!isset($config['merchant_id'], $config['webhook_merchant_id'], $config['webhook_secret_key'])) {
+                    throw new InvalidArgumentException('Required parameters for solidgate client was not provided.');
+                }
+
+                $client = new SolidgateClient(
+                    $config['merchant_id'],
+                    $config['secret_key'],
+                    $config['webhook_merchant_id'],
+                    $config['webhook_secret_key']
+                );
+                break;
             default:
                 throw new InvalidArgumentException('Purchases client initialization error.');
         }
@@ -57,10 +70,6 @@ class PurchasesClientFactory
         return $client;
     }
 
-    /**
-     * @param  array  $config
-     * @return SubtruckService|null
-     */
     private function resolveSubtruck(array $config): ?SubtruckService
     {
         if (!isset($config['token'], $config['idfm'])) {
@@ -70,10 +79,6 @@ class PurchasesClientFactory
         return SubtruckService::service($config['token'], $config['idfm']);
     }
 
-    /**
-     * @param  array  $config
-     * @return FbPixelService|null
-     */
     private function resolveFbPixel(array $config): ?FbPixelService
     {
         if (

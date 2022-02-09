@@ -8,6 +8,7 @@ composer require wowmaking/web-purchases
 - stripe 
 - recurly
 - paypal (Not supports customers)
+- solidgate (Not supports customers)
 
 # Clients required parameters
 ### stripe
@@ -21,6 +22,12 @@ composer require wowmaking/web-purchases
 - secret_key
 - client_id
 - sandbox
+### solidgate
+- client_type = solidgate
+- secret_key
+- merchant_id
+- webhook_secret_key
+- webhook_merchant_id
 
 # Require
 - "php": ">=7.2.0" 
