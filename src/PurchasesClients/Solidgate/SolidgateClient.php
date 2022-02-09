@@ -124,7 +124,7 @@ class SolidgateClient extends PurchasesClient
 
     public function getPaymentFormData(array $attributes): array
     {
-        return $this->provider->formMerchantData($attributes)->toArray();
+        return $this->provider->formMerchantData($attributes);
     }
 
     public function validateSignature(string $incomeSignature, string $body): bool

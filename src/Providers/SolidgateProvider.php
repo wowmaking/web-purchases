@@ -6,7 +6,6 @@ namespace Wowmaking\WebPurchases\Providers;
 
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Psr7\Request;
-use SolidGate\API\DTO\MerchantData;
 use Throwable;
 
 class SolidgateProvider
@@ -59,12 +58,16 @@ class SolidgateProvider
         return $this->sendRequest('subscription/cancel', $attributes);
     }
 
-    public function formMerchantData(array $attributes): MerchantData
+    public function formMerchantData(array $attributes): array
     {
         $encryptedFormData = $this->generateEncryptedFormData($attributes);
         $signature = $this->generateSignature($encryptedFormData);
 
-        return new MerchantData($encryptedFormData, $this->merchantId, $signature);
+        return [
+            'paymentIntent' => $encryptedFormData,
+            'merchant' => $this->merchantId,
+            'signature' => $signature,
+        ];
     }
 
     public function generateSignature(string $data): string
