@@ -2,8 +2,8 @@
 
 namespace Wowmaking\WebPurchases\PurchasesClients;
 
+use LogicException;
 use Wowmaking\WebPurchases\Interfaces\PurchasesClientInterface;
-use Wowmaking\WebPurchases\Resources\Entities\Customer;
 use Wowmaking\WebPurchases\Resources\Entities\Subscription;
 use Wowmaking\WebPurchases\Services\FbPixel\FbPixelService;
 use Wowmaking\WebPurchases\Services\Subtruck\SubtruckService;
@@ -13,6 +13,7 @@ abstract class PurchasesClient implements PurchasesClientInterface
     public const PAYMENT_SERVICE_STRIPE = 'stripe';
     public const PAYMENT_SERVICE_RECURLY = 'recurly';
     public const PAYMENT_SERVICE_PAYPAL = 'paypal';
+    public const PAYMENT_SERVICE_SOLIDGATE = 'solidgate';
 
     protected $provider;
 
@@ -33,7 +34,8 @@ abstract class PurchasesClient implements PurchasesClientInterface
         return [
             self::PAYMENT_SERVICE_RECURLY,
             self::PAYMENT_SERVICE_STRIPE,
-            self::PAYMENT_SERVICE_PAYPAL
+            self::PAYMENT_SERVICE_PAYPAL,
+            self::PAYMENT_SERVICE_SOLIDGATE,
         ];
     }
 
@@ -86,7 +88,7 @@ abstract class PurchasesClient implements PurchasesClientInterface
     /**
      * @return SubtruckService|null
      */
-    public function getSubtruck():? SubtruckService
+    public function getSubtruck(): ?SubtruckService
     {
         return $this->subtruck;
     }
@@ -102,7 +104,7 @@ abstract class PurchasesClient implements PurchasesClientInterface
     /**
      * @return FbPixelService|null
      */
-    public function getFbPixel():? FbPixelService
+    public function getFbPixel(): ?FbPixelService
     {
         return $this->fbPixel;
     }
@@ -114,16 +116,6 @@ abstract class PurchasesClient implements PurchasesClientInterface
     {
         $this->fbPixel = $fbPixel;
     }
-
-    abstract public function getPrices(array $pricesIds = []): array;
-
-    abstract public function createCustomer(array $data): Customer;
-
-    abstract public function getCustomers(array $params): array;
-
-    abstract public function getCustomer(string $customerId): Customer;
-
-    abstract public function updateCustomer(string $customerId, array $data): Customer;
 
     public function createSubscription(array $data): Subscription
     {
@@ -146,15 +138,16 @@ abstract class PurchasesClient implements PurchasesClientInterface
         return $subscription;
     }
 
-    abstract public function subscriptionCreationProcess(array $data);
+    public function getPaymentFormData(array $attributes): array
+    {
+        return [];
+    }
 
-    abstract public function getSubscriptions(string $customerId): array;
-
-    abstract public function cancelSubscription(string $subscriptionId): Subscription;
-
-    abstract public function buildCustomerResource($providerResponse): Customer;
-
-    abstract public function buildSubscriptionResource($providerResponse): Subscription;
-
-    abstract public function loadProvider();
+    /**
+     * @throws LogicException
+     */
+    protected function throwNoRealization(string $methodName): void
+    {
+        throw new LogicException(sprintf('"%s" method is not realized yet.', $methodName));
+    }
 }

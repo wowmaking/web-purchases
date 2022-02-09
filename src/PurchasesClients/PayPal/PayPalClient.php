@@ -8,7 +8,7 @@ use InvalidArgumentException;
 use LogicException;
 use Wowmaking\WebPurchases\Providers\PaypalProvider;
 use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
-use Wowmaking\WebPurchases\Resources\Entities\Customer;
+use Wowmaking\WebPurchases\PurchasesClients\WithoutCustomerSupportTrait;
 use Wowmaking\WebPurchases\Resources\Entities\Price;
 use Wowmaking\WebPurchases\Resources\Entities\Subscription;
 
@@ -17,6 +17,8 @@ use Wowmaking\WebPurchases\Resources\Entities\Subscription;
  */
 class PayPalClient extends PurchasesClient
 {
+    use WithoutCustomerSupportTrait;
+
     private const STATUS_ACTIVE = 'ACTIVE';
 
     private const TENURE_TYPE_TRIAL = 'TRIAL';
@@ -39,11 +41,6 @@ class PayPalClient extends PurchasesClient
         $this->isSandbox = $isSandbox;
 
         parent::__construct($secretKey);
-    }
-
-    public function isSupportsCustomers(): bool
-    {
-        return false;
     }
 
     public function getPrices(array $pricesIds = []): array
@@ -90,26 +87,6 @@ class PayPalClient extends PurchasesClient
         return $prices;
     }
 
-    public function createCustomer(array $data): Customer
-    {
-        $this->throwNoRealization(__METHOD__);
-    }
-
-    public function getCustomers(array $params): array
-    {
-        $this->throwNoRealization(__METHOD__);
-    }
-
-    public function getCustomer(string $customerId): Customer
-    {
-        $this->throwNoRealization(__METHOD__);
-    }
-
-    public function updateCustomer(string $customerId, array $data): Customer
-    {
-        $this->throwNoRealization(__METHOD__);
-    }
-
     public function subscriptionCreationProcess(array $data)
     {
         $customerId = $data['customer_id'] ?? null;
@@ -148,11 +125,6 @@ class PayPalClient extends PurchasesClient
         $paypalSubscriptionData = $this->getSubscription($subscriptionId);
 
         return $this->buildSubscriptionResource($paypalSubscriptionData);
-    }
-
-    public function buildCustomerResource($providerResponse): Customer
-    {
-        $this->throwNoRealization(__METHOD__);
     }
 
     public function buildSubscriptionResource($providerResponse): Subscription
@@ -235,13 +207,4 @@ class PayPalClient extends PurchasesClient
 
         return $customIdParts[0];
     }
-
-    /**
-     * @throws LogicException
-     */
-    private function throwNoRealization(string $methodName): void
-    {
-        throw new LogicException(sprintf('"%s" method is not realized yet.', $methodName));
-    }
-
 }
