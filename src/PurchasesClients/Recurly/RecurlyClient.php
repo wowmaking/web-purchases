@@ -165,7 +165,7 @@ class RecurlyClient extends PurchasesClient
      */
     public function subscriptionCreationProcess(array $data): \Recurly\Resources\Subscription
     {
-        return $this->getProvider()->createSubscription([
+        $subscription = [
             'plan_code' => $data['price_id'],
             'account' => [
                 'code' => $data['customer_id'],
@@ -175,7 +175,12 @@ class RecurlyClient extends PurchasesClient
                 ]
             ],
             'currency' => 'USD'
-        ]);
+        ];
+
+        if (isset($data['three_d_secure_action_result_token_id'])) {
+            $subscription['account']['billing_info']['three_d_secure_action_result_token_id'] = $data['three_d_secure_action_result_token_id'];
+        }
+        return $this->getProvider()->createSubscription($subscription);
     }
 
     /**
