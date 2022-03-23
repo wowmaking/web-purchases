@@ -2,10 +2,13 @@
 
 namespace Wowmaking\WebPurchases\Resources\Entities;
 
+use Wowmaking\WebPurchases\Enums\PeriodUnitEnum;
 use Wowmaking\WebPurchases\Interfaces\ResourcesEntityInterface;
 
 class Price implements ResourcesEntityInterface
 {
+    private const MONTHS_IN_YEAR = 12;
+
     public $id;
 
     public $amount;
@@ -105,6 +108,17 @@ class Price implements ResourcesEntityInterface
      */
     public function setPeriod(int $length, string $unit): void
     {
-        $this->period = sprintf('P%d%s', $length, strtoupper($unit[0]));
+        $unit = strtoupper($unit[0]);
+
+        if (!in_array($unit, PeriodUnitEnum::list(), true)) {
+            throw new \InvalidArgumentException(sprintf('"%s" is unknown interval unit.', $unit));
+        }
+
+        if ($unit === PeriodUnitEnum::MONTH && $length % self::MONTHS_IN_YEAR === 0) {
+            $unit = PeriodUnitEnum::YEAR;
+            $length = $length / self::MONTHS_IN_YEAR;
+        }
+
+        $this->period = sprintf('P%d%s', $length, $unit);
     }
 }
