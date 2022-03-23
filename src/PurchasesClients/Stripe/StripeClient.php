@@ -58,6 +58,10 @@ class StripeClient extends PurchasesClient
             $price->setTrialPeriodDays($item->recurring->trial_period_days ?? 0);
             $price->setTrialPriceAmount(0);
 
+            if ($item->recurring->interval && $item->recurring->interval_count) {
+                $price->setPeriod($item->recurring->interval_count, $item->recurring->interval);
+            }
+
             $prices[] = $price;
         }
 

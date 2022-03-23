@@ -12,6 +12,8 @@ class Price implements ResourcesEntityInterface
 
     public $currency;
 
+    public $period;
+
     public $trial_period_days;
 
     public $trial_price_amount;
@@ -94,5 +96,15 @@ class Price implements ResourcesEntityInterface
     public function setTrialPriceAmount($trial_price_amount): void
     {
         $this->trial_price_amount = $trial_price_amount;
+    }
+
+    /**
+     * @param int $length
+     * @param string $unit
+     * @return void
+     */
+    public function setPeriod(int $length, string $unit): void
+    {
+        $this->period = sprintf('P%d%s', $length, strtoupper($unit[0]));
     }
 }
