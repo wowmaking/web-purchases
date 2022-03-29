@@ -8,6 +8,7 @@ use Wowmaking\WebPurchases\Interfaces\ResourcesEntityInterface;
 class Price implements ResourcesEntityInterface
 {
     private const MONTHS_IN_YEAR = 12;
+    private const DAYS_IN_WEEK = 7;
 
     public $id;
 
@@ -116,7 +117,12 @@ class Price implements ResourcesEntityInterface
 
         if ($unit === PeriodUnitEnum::MONTH && $length % self::MONTHS_IN_YEAR === 0) {
             $unit = PeriodUnitEnum::YEAR;
-            $length = $length / self::MONTHS_IN_YEAR;
+            $length /= self::MONTHS_IN_YEAR;
+        }
+
+        if ($unit === PeriodUnitEnum::DAY && $length % self::DAYS_IN_WEEK === 0) {
+            $unit = PeriodUnitEnum::WEEK;
+            $length /= self::DAYS_IN_WEEK;
         }
 
         $this->period = sprintf('P%d%s', $length, $unit);
