@@ -66,6 +66,7 @@ class PayPalClient extends PurchasesClient
                 if ($billingCycle['tenure_type'] === self::TENURE_TYPE_REGULAR) {
                     $price->setAmount($billingCycle['pricing_scheme']['fixed_price']['value']);
                     $price->setCurrency($billingCycle['pricing_scheme']['fixed_price']['currency_code']);
+                    $price->setPeriod((int) $billingCycle['frequency']['interval_count'], (string) $billingCycle['frequency']['interval_unit']);
                 }
 
                 if ($billingCycle['tenure_type'] === self::TENURE_TYPE_TRIAL && !$trialCycle) {

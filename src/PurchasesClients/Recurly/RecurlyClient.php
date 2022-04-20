@@ -63,6 +63,7 @@ class RecurlyClient extends PurchasesClient
             $price->setCurrency($item->getCurrencies()[0]->getCurrency());
             $price->setTrialPeriodDays($item->getTrialLength());
             $price->setTrialPriceAmount($item->getCurrencies()[0]->getSetupFee());
+            $price->setPeriod($item->getIntervalLength(), $item->getIntervalUnit());
 
             $prices[] = $price;
         }

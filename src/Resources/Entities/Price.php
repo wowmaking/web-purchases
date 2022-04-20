@@ -2,15 +2,21 @@
 
 namespace Wowmaking\WebPurchases\Resources\Entities;
 
+use Wowmaking\WebPurchases\Enums\PeriodUnitEnum;
 use Wowmaking\WebPurchases\Interfaces\ResourcesEntityInterface;
 
 class Price implements ResourcesEntityInterface
 {
+    private const MONTHS_IN_YEAR = 12;
+    private const DAYS_IN_WEEK = 7;
+
     public $id;
 
     public $amount;
 
     public $currency;
+
+    public $period;
 
     public $trial_period_days;
 
@@ -94,5 +100,31 @@ class Price implements ResourcesEntityInterface
     public function setTrialPriceAmount($trial_price_amount): void
     {
         $this->trial_price_amount = $trial_price_amount;
+    }
+
+    /**
+     * @param int $length
+     * @param string $unit
+     * @return void
+     */
+    public function setPeriod(int $length, string $unit): void
+    {
+        $unit = strtoupper($unit[0]);
+
+        if (!in_array($unit, PeriodUnitEnum::list(), true)) {
+            throw new \InvalidArgumentException(sprintf('"%s" is unknown interval unit.', $unit));
+        }
+
+        if ($unit === PeriodUnitEnum::MONTH && $length % self::MONTHS_IN_YEAR === 0) {
+            $unit = PeriodUnitEnum::YEAR;
+            $length /= self::MONTHS_IN_YEAR;
+        }
+
+        if ($unit === PeriodUnitEnum::DAY && $length % self::DAYS_IN_WEEK === 0) {
+            $unit = PeriodUnitEnum::WEEK;
+            $length /= self::DAYS_IN_WEEK;
+        }
+
+        $this->period = sprintf('P%d%s', $length, $unit);
     }
 }
