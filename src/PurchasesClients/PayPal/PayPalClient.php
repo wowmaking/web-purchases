@@ -132,10 +132,9 @@ class PayPalClient extends PurchasesClient
         $trialInterval = null;
         $regularInterval = null;
 
-        $plans = $this->getProvider()->listPlans([$providerResponse['plan_id']]);
-        $plan = current($plans);
+        $plan = $this->getProvider()->getPlan($providerResponse['plan_id']);
 
-        if ($plan && isset($plan['billing_cycles']) && $plan['billing_cycles']) {
+        if (isset($plan['billing_cycles']) && $plan['billing_cycles']) {
             $trialCycle = false;
             foreach ($plan['billing_cycles'] as $billingCycle) {
                 if ($billingCycle['tenure_type'] === self::TENURE_TYPE_REGULAR) {
