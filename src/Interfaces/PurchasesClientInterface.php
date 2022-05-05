@@ -10,6 +10,8 @@ interface PurchasesClientInterface
 {
     public function isSupportsCustomers(): bool;
 
+    public function isSupportsPrices(): bool;
+
     public function getPaymentFormData(array $attributes): array;
 
     /**

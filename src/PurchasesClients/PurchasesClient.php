@@ -50,6 +50,11 @@ abstract class PurchasesClient implements PurchasesClientInterface
         $this->loadProvider();
     }
 
+    public function isSupportsPrices(): bool
+    {
+        return true;
+    }
+
     /**
      * @return string
      */
