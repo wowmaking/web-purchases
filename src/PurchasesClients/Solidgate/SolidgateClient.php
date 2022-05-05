@@ -40,6 +40,10 @@ class SolidgateClient extends PurchasesClient
         $this->webHookProvider = new SolidgateProvider($webhookMerchantId, $webhookSecretKey);
     }
 
+    public function isSupportsPrices(): bool
+    {
+        return false;
+    }
 
     public function getPrices(array $pricesIds = []): array
     {
