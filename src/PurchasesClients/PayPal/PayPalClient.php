@@ -161,8 +161,12 @@ class PayPalClient extends PurchasesClient
         $subscription->setTransactionId($providerResponse['id']);
         $subscription->setPlanName($providerResponse['plan_id']);
         $subscription->setEmail($providerResponse['subscriber']['email_address']);
-        $subscription->setCurrency($providerResponse['shipping_amount']['currency_code']);
-        $subscription->setAmount($providerResponse['shipping_amount']['value']);
+        $subscription->setCurrency(
+            $providerResponse['billing_info']['last_payment']['amount']['currency_code']
+            ?? $providerResponse['shipping_amount']['currency_code']
+        );
+        $subscription->setAmount($providerResponse['billing_info']['last_payment']['amount']['value']
+            ?? $providerResponse['shipping_amount']['value']);
         $subscription->setCustomerId($this->getCustomerIdFromCustomId($providerResponse['custom_id']));
         $subscription->setCreatedAt($providerResponse['create_time']);
 
