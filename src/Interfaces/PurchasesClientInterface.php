@@ -2,6 +2,7 @@
 
 namespace Wowmaking\WebPurchases\Interfaces;
 
+use Wowmaking\WebPurchases\Dto\TrackDataDto;
 use Wowmaking\WebPurchases\Resources\Entities\Customer;
 use Wowmaking\WebPurchases\Resources\Entities\Price;
 use Wowmaking\WebPurchases\Resources\Entities\Subscription;
@@ -44,11 +45,7 @@ interface PurchasesClientInterface
      */
     public function updateCustomer(string $customerId, array $data): Customer;
 
-    /**
-     * @param array $data
-     * @return Subscription
-     */
-    public function createSubscription(array $data): Subscription;
+    public function createSubscription(array $data, TrackDataDto $trackDataDto = null): Subscription;
 
     /**
      * @param array $data

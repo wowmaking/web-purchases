@@ -3,6 +3,8 @@
 namespace Wowmaking\WebPurchases\PurchasesClients;
 
 use LogicException;
+use Wowmaking\WebPurchases\Dto\TrackDataDto;
+use Wowmaking\WebPurchases\Factories\TrackParametersProviderFactory;
 use Wowmaking\WebPurchases\Interfaces\PurchasesClientInterface;
 use Wowmaking\WebPurchases\Resources\Entities\Subscription;
 use Wowmaking\WebPurchases\Services\FbPixel\FbPixelService;
@@ -20,11 +22,18 @@ abstract class PurchasesClient implements PurchasesClientInterface
     /** @var string */
     protected $secretKey;
 
+    /**
+     * @var TrackParametersProviderFactory
+     */
+    protected $trackParametersProviderFactory;
+
     /** @var SubtruckService|null */
     private $subtruck;
 
     /** @var FbPixelService|null */
     private $fbPixel;
+
+    abstract protected function getPurchaseClientType(): string;
 
     /**
      * @return string[]
@@ -48,6 +57,8 @@ abstract class PurchasesClient implements PurchasesClientInterface
         $this->setSecretKey($secretKey);
 
         $this->loadProvider();
+
+        $this->trackParametersProviderFactory = new TrackParametersProviderFactory();
     }
 
     public function isSupportsPrices(): bool
@@ -122,16 +133,20 @@ abstract class PurchasesClient implements PurchasesClientInterface
         $this->fbPixel = $fbPixel;
     }
 
-    public function createSubscription(array $data): Subscription
+    public function createSubscription(array $data, TrackDataDto $trackDataDto = null): Subscription
     {
         $response = $this->subscriptionCreationProcess($data);
 
         $subscription = $this->buildSubscriptionResource($response);
 
+        $trackParams = $trackDataDto
+            ? $this->trackParametersProviderFactory->createBySystem($this->getPurchaseClientType())->provide($trackDataDto)
+            : [];
+
         $tracks = [];
 
         if ($this->getSubtruck()) {
-            $tracks['subtruck'] = $this->getSubtruck()->track($subscription);
+            $tracks['subtruck'] = $this->getSubtruck()->track($subscription, $trackParams);
         }
 
         if ($this->getFbPixel()) {

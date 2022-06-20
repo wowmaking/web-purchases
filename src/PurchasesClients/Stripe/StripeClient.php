@@ -246,4 +246,9 @@ class StripeClient extends PurchasesClient
 
         return $subscription;
     }
+
+    protected function getPurchaseClientType(): string
+    {
+        return self::PAYMENT_SERVICE_STRIPE;
+    }
 }

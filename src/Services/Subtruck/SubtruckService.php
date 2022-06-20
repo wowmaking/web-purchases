@@ -74,10 +74,9 @@ class SubtruckService
     }
 
     /**
-     * @param Subscription $subscription
      * @return \Exception|\GuzzleHttp\Exception\GuzzleException
      */
-    public function track(Subscription $subscription)
+    public function track(Subscription $subscription, array $trackParams = [])
     {
         $transaction = [
             'order_id' => $subscription->getTransactionId(),
@@ -93,7 +92,7 @@ class SubtruckService
                 'body' => json_encode([
                     'idfm' => $this->getIdfm(),
                     'token' => $this->getToken(),
-                    'internal_uid' => $subscription->getEmail(),
+                    'internal_uid' => $trackParams['internal_uid'] ?? $subscription->getEmail(),
                     'transaction' => $transaction,
                 ]),
             ]);

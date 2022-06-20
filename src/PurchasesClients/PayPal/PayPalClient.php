@@ -211,4 +211,9 @@ class PayPalClient extends PurchasesClient
 
         return $customIdParts[0];
     }
+
+    protected function getPurchaseClientType(): string
+    {
+        return self::PAYMENT_SERVICE_PAYPAL;
+    }
 }
