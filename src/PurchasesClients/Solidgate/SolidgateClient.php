@@ -145,4 +145,9 @@ class SolidgateClient extends PurchasesClient
             true
         );
     }
+
+    protected function getPurchaseClientType(): string
+    {
+        return self::PAYMENT_SERVICE_SOLIDGATE;
+    }
 }
