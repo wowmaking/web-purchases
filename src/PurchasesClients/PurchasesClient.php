@@ -143,6 +143,10 @@ abstract class PurchasesClient implements PurchasesClientInterface
             ? $this->trackParametersProviderFactory->createBySystem($this->getPurchaseClientType())->provide($trackDataDto)
             : [];
 
+        if ($credentialsId = $this->getCredentialsId()) {
+            $trackParams['credentials_id'] = $credentialsId;
+        }
+
         $tracks = [];
 
         if ($this->getSubtruck()) {
@@ -161,6 +165,11 @@ abstract class PurchasesClient implements PurchasesClientInterface
     public function getPaymentFormData(array $attributes): array
     {
         return [];
+    }
+
+    protected function getCredentialsId(): ?string
+    {
+        return null;
     }
 
     /**
