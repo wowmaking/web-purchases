@@ -12,6 +12,18 @@ use Wowmaking\WebPurchases\Resources\Entities\Subscription;
 
 class RecurlyClient extends PurchasesClient
 {
+    /**
+     * @var string
+     */
+    protected $publicKey;
+
+    public function __construct(string $publicKey, string $secretKey)
+    {
+        $this->publicKey = $publicKey;
+
+        parent::__construct($secretKey);
+    }
+
     public function isSupportsCustomers(): bool
     {
         return true;
@@ -253,6 +265,11 @@ class RecurlyClient extends PurchasesClient
         } catch (\TypeError $e) {}
 
         return $subscription;
+    }
+
+    protected function getCredentialsId(): ?string
+    {
+        return $this->publicKey;
     }
 
     protected function getPurchaseClientType(): string

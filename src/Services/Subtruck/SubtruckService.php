@@ -84,6 +84,10 @@ class SubtruckService
             'product_id' => $subscription->getPlanName()
         ];
 
+        if (array_key_exists('credentials_id', $trackParams)) {
+            $transaction['credentials_id'] = $trackParams['credentials_id'];
+        }
+
         try {
             $response = (new Client())->request('POST', 'https://subtruck.magnus.ms/api/v2/transaction/', [
                 'headers' => [

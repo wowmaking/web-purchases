@@ -40,7 +40,11 @@ class PurchasesClientFactory
                 break;
 
             case PurchasesClient::PAYMENT_SERVICE_RECURLY:
-                $client = new RecurlyClient($config['secret_key']);
+                if (!isset($config['public_key'])) {
+                    throw new InvalidArgumentException('Required parameters for recurly client was not provided.');
+                }
+
+                $client = new RecurlyClient($config['public_key'], $config['secret_key']);
                 break;
 
             case PurchasesClient::PAYMENT_SERVICE_PAYPAL:

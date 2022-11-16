@@ -16,6 +16,7 @@ composer require wowmaking/web-purchases
 - secret_key
 ### recurly
 - client_type = recurly
+- public_key
 - secret_key
 ### paypal
 - client_type = paypal
