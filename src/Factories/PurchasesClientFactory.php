@@ -3,6 +3,7 @@
 namespace Wowmaking\WebPurchases\Factories;
 
 use InvalidArgumentException;
+use Wowmaking\WebPurchases\PurchasesClients\Paddle\PaddleClient;
 use Wowmaking\WebPurchases\PurchasesClients\PayPal\PayPalClient;
 use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
 use Wowmaking\WebPurchases\PurchasesClients\Recurly\RecurlyClient;
@@ -30,25 +31,24 @@ class PurchasesClientFactory
             throw new InvalidArgumentException('Invalid purchases client type.');
         }
 
-        if (!isset($config['secret_key'])) {
-            throw new InvalidArgumentException('Invalid purchases client secret.');
-        }
-
         switch ($config['client_type']) {
             case PurchasesClient::PAYMENT_SERVICE_STRIPE:
+
+                if (!isset($config['secret_key'])) {
+                    throw new InvalidArgumentException('Invalid purchases client secret.');
+                }
                 $client = new StripeClient($config['secret_key']);
                 break;
 
             case PurchasesClient::PAYMENT_SERVICE_RECURLY:
-                if (!isset($config['public_key'])) {
+                if (!isset($config['public_key'], $config['secret_key'])) {
                     throw new InvalidArgumentException('Required parameters for recurly client was not provided.');
                 }
-
                 $client = new RecurlyClient($config['public_key'], $config['secret_key']);
                 break;
 
             case PurchasesClient::PAYMENT_SERVICE_PAYPAL:
-                if (!isset($config['client_id'], $config['sandbox'])) {
+                if (!isset($config['client_id'], $config['sandbox'], $config['secret_key'])) {
                     throw new InvalidArgumentException('Required parameters for paypal client was not provided.');
                 }
 
@@ -56,7 +56,7 @@ class PurchasesClientFactory
                 break;
 
             case PurchasesClient::PAYMENT_SERVICE_SOLIDGATE:
-                if (!isset($config['merchant_id'], $config['webhook_merchant_id'], $config['webhook_secret_key'])) {
+                if (!isset($config['merchant_id'], $config['webhook_merchant_id'], $config['secret_key'], $config['webhook_secret_key'])) {
                     throw new InvalidArgumentException('Required parameters for solidgate client was not provided.');
                 }
 
@@ -65,6 +65,17 @@ class PurchasesClientFactory
                     $config['secret_key'],
                     $config['webhook_merchant_id'],
                     $config['webhook_secret_key']
+                );
+                break;
+            case PurchasesClient::PAYMENT_SERVICE_PADDLE:
+                if (!isset($config['vendor_id'], $config['vendor_auth_code'], $config['sandbox'])) {
+                    throw new InvalidArgumentException('Required parameters for paddle client was not provided.');
+                }
+
+                $client = new PaddleClient(
+                    $config['vendor_id'],
+                    $config['vendor_auth_code'],
+                    $config['sandbox']
                 );
                 break;
             default:

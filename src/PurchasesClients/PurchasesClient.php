@@ -16,6 +16,7 @@ abstract class PurchasesClient implements PurchasesClientInterface
     public const PAYMENT_SERVICE_RECURLY = 'recurly';
     public const PAYMENT_SERVICE_PAYPAL = 'paypal';
     public const PAYMENT_SERVICE_SOLIDGATE = 'solidgate';
+    public const PAYMENT_SERVICE_PADDLE = 'paddle';
 
     protected $provider;
 
@@ -45,6 +46,7 @@ abstract class PurchasesClient implements PurchasesClientInterface
             self::PAYMENT_SERVICE_STRIPE,
             self::PAYMENT_SERVICE_PAYPAL,
             self::PAYMENT_SERVICE_SOLIDGATE,
+            self::PAYMENT_SERVICE_PADDLE
         ];
     }
 
