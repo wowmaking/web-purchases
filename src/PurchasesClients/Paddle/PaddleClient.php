@@ -4,6 +4,7 @@ namespace Wowmaking\WebPurchases\PurchasesClients\Paddle;
 
 use DateInterval;
 use DateTimeImmutable;
+use Faker\Provider\DateTime;
 use InvalidArgumentException;
 use LogicException;
 use Wowmaking\WebPurchases\Factories\TrackParametersProviderFactory;
@@ -21,6 +22,7 @@ class PaddleClient extends PurchasesClient
 {
     use WithoutCustomerSupportTrait;
 
+    private const STATUS_ACTIVE = 'processed';
     private $vendorId;
 
     private $vendorAuthCode;
@@ -66,28 +68,16 @@ class PaddleClient extends PurchasesClient
 
     public function subscriptionCreationProcess(array $data)
     {
-        $customerId = $data['customer_id'] ?? null;
-        $subscriptionId = $data['subscription_id'] ?? null;
+        $checkoutId = $data['checkout_id'] ?? null;
 
-        if (!$customerId || !$subscriptionId) {
+        if (!$checkoutId) {
             throw new InvalidArgumentException('Not all required parameters were passed.');
         }
 
-        $paypalSubscriptionData = $this->getSubscription($subscriptionId);
+        $paddleOrderDetails = $this->getOrder($checkoutId);
+        $paddleOrderDetails['customer_id'] = $data['customer_id'];
 
-        $customId = $paypalSubscriptionData['custom_id'] ?? null;
-
-        if (!$customId) {
-            throw new LogicException('Missed custom id for subscription.');
-        }
-
-        $subscriptionCustomerId = $this->getCustomerIdFromCustomId($customId);
-
-        if ($subscriptionCustomerId !== $customerId) {
-            throw new LogicException('Subscription assigned for another customer.');
-        }
-
-        return $paypalSubscriptionData;
+        return $paddleOrderDetails;
     }
 
     public function getSubscriptions(string $customerId): array
@@ -99,75 +89,27 @@ class PaddleClient extends PurchasesClient
     {
         $this->getProvider()->cancelSubscription($subscriptionId, 'Cancel request.');
 
-        $paypalSubscriptionData = $this->getSubscription($subscriptionId);
+        $subscription = new Subscription();
 
-        return $this->buildSubscriptionResource($paypalSubscriptionData);
+        return $subscription;
     }
 
     public function buildSubscriptionResource($providerResponse): Subscription
     {
-        $trialInterval = null;
-        $regularInterval = null;
-
-        $plan = $this->getProvider()->getPlan($providerResponse['plan_id']);
-
-        if (isset($plan['billing_cycles']) && $plan['billing_cycles']) {
-            $trialCycle = false;
-            foreach ($plan['billing_cycles'] as $billingCycle) {
-                if ($billingCycle['tenure_type'] === self::TENURE_TYPE_REGULAR) {
-                    $intervalUnit = $billingCycle['frequency']['interval_unit'];
-                    $intervalCount = $billingCycle['frequency']['interval_count'];
-
-                    $regularInterval = DateInterval::createFromDateString("$intervalCount $intervalUnit");
-                }
-
-                if ($billingCycle['tenure_type'] === self::TENURE_TYPE_TRIAL && !$trialCycle) {
-                    $trialCycle = true;
-
-                    $intervalUnit = $billingCycle['frequency']['interval_unit'];
-                    $intervalCount = $billingCycle['frequency']['interval_count'];
-
-                    $trialInterval = DateInterval::createFromDateString("$intervalCount $intervalUnit");
-                }
-            }
-        }
-
         $subscription = new Subscription();
 
-        $subscription->setTransactionId($providerResponse['id']);
-        $subscription->setPlanName($providerResponse['plan_id']);
-        $subscription->setEmail($providerResponse['subscriber']['email_address']);
-        $subscription->setCurrency(
-            $providerResponse['billing_info']['last_payment']['amount']['currency_code']
-            ?? $providerResponse['shipping_amount']['currency_code']
-        );
-        $subscription->setAmount($providerResponse['billing_info']['last_payment']['amount']['value']
-            ?? $providerResponse['shipping_amount']['value']);
-        $subscription->setCustomerId($this->getCustomerIdFromCustomId($providerResponse['custom_id']));
-        $subscription->setCreatedAt($providerResponse['create_time']);
+        $subscription->setTransactionId($providerResponse['order']['subscription_id']);
+        $subscription->setPlanName($providerResponse['order']['product_id']);
+        $subscription->setEmail($providerResponse['order']['customer']['email']);
+        $subscription->setCustomerId($providerResponse['customer_id']);
+        $subscription->setCurrency($providerResponse['order']['currency']);
+        $subscription->setAmount($providerResponse['order']['total']);
+        $subscription->setCreatedAt(date('Y-m-d H:i:s'));
 
-        $startDate = new DateTimeImmutable($providerResponse['start_time']);
-
-        if ($trialInterval) {
-            $subscription->setTrialStartAt($startDate->format('c'));
-            $subscription->setTrialEndAt($startDate->add($trialInterval)->format('c'));
-        }
-
-        if ($regularInterval) {
-            $regularEnds = $startDate->add($regularInterval);
-
-            if ($trialInterval) {
-                $regularEnds = $regularEnds->add($trialInterval);
-            }
-
-            $subscription->setExpireAt($regularEnds->format('c'));
-        }
-
-        $subscription->setState($providerResponse['status']);
-        $subscription->setIsActive($providerResponse['status'] === self::STATUS_ACTIVE);
-        $subscription->setProvider(PurchasesClient::PAYMENT_SERVICE_PAYPAL);
+        $subscription->setState($providerResponse['state']);
+        $subscription->setIsActive($providerResponse['state'] === self::STATUS_ACTIVE);
+        $subscription->setProvider(PurchasesClient::PAYMENT_SERVICE_PADDLE);
         $subscription->setProviderResponse($providerResponse);
-
         return $subscription;
     }
 
@@ -176,17 +118,11 @@ class PaddleClient extends PurchasesClient
         $this->setProvider(new PaddleProvider($this->vendorId, $this->vendorAuthCode, $this->isSandbox));
     }
 
-    private function getSubscription(string $subscriptionId): array
+    private function getOrder(string $checkoutId): array
     {
-        return $this->getProvider()->getSubscription($subscriptionId);
+        return $this->getProvider()->getOrder($checkoutId);
     }
 
-    private function getCustomerIdFromCustomId(string $customId): string
-    {
-        $customIdParts = explode('|', $customId);
-
-        return $customIdParts[0];
-    }
 
     protected function getPurchaseClientType(): string
     {

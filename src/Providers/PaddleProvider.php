@@ -9,11 +9,12 @@ use yii\httpclient\Exception;
 class PaddleProvider
 {
     private const VENDOR_URL = 'https://vendors.paddle.com/api/2.0/';
-    private const CHECKOUT_URL = 'https://checkout.paddle.com/api/2.0/';
+    private const CHECKOUT_URL = 'https://checkout.paddle.com/api/1.0/';
 
     private const URL_GET_SUBSCRIPTION_PLANS = 'subscription/plans';
-
     private const URL_GENERATE_PAY_LINK = 'product/generate_pay_link';
+    private const URL_GET_ORDER_DETAILS = 'order';
+    private const URL_CANCEL_SUBSCRIPTION = 'subscription/users_cancel';
 
     /**
      * @var int
@@ -65,21 +66,33 @@ class PaddleProvider
         return $payLink['url'];
     }
 
-    public function getPlan(string $planId): array
+
+    public function getOrder(string $checkoutId): array
     {
-        return $this->makeRequest('GET', sprintf(self::URL_TPL_GET_PLAN, $planId));
+        $endpointUrl = self::URL_GET_ORDER_DETAILS;
+        $baseUrl = self::CHECKOUT_URL;
+
+        return $this->makeRequest("GET", $baseUrl, $endpointUrl, ['checkout_id'=>$checkoutId]);
+    }
+
+    public function cancelSubscription($subscriptionId) {
+        $endpointUrl = self::URL_CANCEL_SUBSCRIPTION;
+        $baseUrl = self::VENDOR_URL;
+        $payload = ['subscription_id'=>$subscriptionId];
+        $response = $this->makeRequest("POST", $baseUrl, $endpointUrl, $payload);
+        var_dump($response);
+        die;
     }
 
 
-    private function makeRequest(string $method, string $baseUrl, string $endpointUrl, array $body = [])
+    private function makeRequest(string $method, string $baseUrl, string $endpointUrl, array $params = [])
     {
         if($this->isSandbox) {
             $baseUrl = str_replace("https://", 'https://sandbox-', $baseUrl);
         }
 
         if($method == 'POST') {
-            $body = array_merge(['vendor_id' => $this->vendorId, 'vendor_auth_code' => $this->vendorAuthCode], $body);
-
+            $body = array_merge(['vendor_id' => $this->vendorId, 'vendor_auth_code' => $this->vendorAuthCode], $params);
             $response = $this->httpClient->request($method, $baseUrl . $endpointUrl, [
                 'headers' => [
                     'Accept'     => 'application/json',
@@ -87,15 +100,28 @@ class PaddleProvider
                 ],
                 'body' => json_encode($body)
             ]);
+            $response = json_decode($response->getBody(), true);
+
+            if($response['success']){
+                return $response['response'];
+            } else {
+                throw new Exception($response['error']['message']);
+            }
+
+        } elseif($method == 'GET') {
+            $response = $this->httpClient->request($method, $baseUrl . $endpointUrl, [
+                'headers' => [
+                    'Accept'     => 'application/json',
+                    'Content-type'     => 'application/json',
+                ],
+                'query' => $params,
+            ]);
+            $response = json_decode($response->getBody(), true);
+            return $response;
         } else {
             throw new \Exception($method." method not supported");
         }
-        $response = json_decode($response->getBody(), true);
-        if($response['success']){
-            return $response['response'];
-        } else {
-            throw new Exception($response['error']['message']);
-        }
+
     }
 
 
