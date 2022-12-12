@@ -15,6 +15,9 @@ class PaddleProvider
     private const URL_GENERATE_PAY_LINK = 'product/generate_pay_link';
     private const URL_GET_ORDER_DETAILS = 'order';
     private const URL_CANCEL_SUBSCRIPTION = 'subscription/users_cancel';
+    private const URL_GET_PAYMENTS = 'subscription/payments';
+    private const URL_RESCHEDULING_PAYMENT = 'subscription/payments_reschedule';
+
 
     /**
      * @var int
@@ -79,9 +82,22 @@ class PaddleProvider
         $endpointUrl = self::URL_CANCEL_SUBSCRIPTION;
         $baseUrl = self::VENDOR_URL;
         $payload = ['subscription_id'=>$subscriptionId];
-        $response = $this->makeRequest("POST", $baseUrl, $endpointUrl, $payload);
-        var_dump($response);
-        die;
+        $this->makeRequest("POST", $baseUrl, $endpointUrl, $payload);
+    }
+
+    public function getPayments($subscriptionId){
+        $endpointUrl = self::URL_GET_PAYMENTS;
+        $baseUrl = self::VENDOR_URL;
+        $payload = ['subscription_id'=>$subscriptionId];
+        $payments = $this->makeRequest("POST", $baseUrl, $endpointUrl, $payload);
+        return $payments;
+    }
+
+    public function reschedulingPayments($paymentId, $date){
+        $endpointUrl = self::URL_RESCHEDULING_PAYMENT;
+        $baseUrl = self::VENDOR_URL;
+        $payload = ['payment_id'=>$paymentId, 'date'=> $date];
+        $payments = $this->makeRequest("POST", $baseUrl, $endpointUrl, $payload);
     }
 
 

@@ -2,6 +2,7 @@
 
 namespace Wowmaking\WebPurchases\PurchasesClients\Paddle;
 
+use Carbon\Carbon;
 use DateInterval;
 use DateTimeImmutable;
 use Faker\Provider\DateTime;
@@ -29,10 +30,13 @@ class PaddleClient extends PurchasesClient
 
     private $isSandbox;
 
-    public function __construct(string $vendorId, string $vendorAuthCode, bool $isSandbox = false)
+    private $publicKey;
+
+    public function __construct(string $vendorId, string $vendorAuthCode, string $publicKey, bool $isSandbox = false)
     {
         $this->vendorId = $vendorId;
         $this->vendorAuthCode = $vendorAuthCode;
+        $this->publicKey = $publicKey;
         $this->isSandbox = $isSandbox;
         $this->loadProvider();
         $this->trackParametersProviderFactory = new TrackParametersProviderFactory();
@@ -66,6 +70,27 @@ class PaddleClient extends PurchasesClient
         return $customPayLink;
     }
 
+    public function reschedulingSubscription($subscriptionId, $trialPeriodDays, $trialPrice) {
+        $payments = $this->getProvider()->getPayments($subscriptionId);
+        $paidPayment = null;
+        $nextPayment = null;
+        foreach($payments as $payment) {
+            if(($payment['is_paid'] == 1) && $payment['amount'] == $trialPrice){
+                $paidPayment = $payment;
+            }
+            if(($payment['is_paid'] == 0)) {
+                $nextPayment = $payment;
+            }
+        }
+        if($paidPayment && $nextPayment){
+            if($nextPayment['payout_date'] > $paidPayment['payout_date']){
+                $nextPayDate = Carbon::parse($paidPayment['payout_date'])->addDays($trialPeriodDays)->format("Y-m-d");
+                $this->getProvider()->reschedulingPayments($nextPayment['id'], $nextPayDate);
+            }
+        }
+    }
+
+
     public function subscriptionCreationProcess(array $data)
     {
         $checkoutId = $data['checkout_id'] ?? null;
@@ -73,8 +98,19 @@ class PaddleClient extends PurchasesClient
         if (!$checkoutId) {
             throw new InvalidArgumentException('Not all required parameters were passed.');
         }
+        $attempt = 0;
+        do {
+            $paddleOrderDetails = $this->getOrder($checkoutId);
+            if(isset($paddleOrderDetails['state']) && $paddleOrderDetails['state'] != 'processing') {
+                break;
+            }
+            sleep(1);
+            ++$attempt;
+            if($attempt > 10) {
+                throw new \Exception("Subscription in processing state is a lot of time");
+            }
+        } while(true);
 
-        $paddleOrderDetails = $this->getOrder($checkoutId);
         $paddleOrderDetails['customer_id'] = $data['customer_id'];
 
         return $paddleOrderDetails;
@@ -123,6 +159,33 @@ class PaddleClient extends PurchasesClient
         return $this->getProvider()->getOrder($checkoutId);
     }
 
+    public function  verifyWebhook(array $post): bool{
+        $public_key = openssl_get_publickey($this->publicKey);
+
+        $signature = base64_decode($post['p_signature']);
+
+        // Get the fields sent in the request, and remove the p_signature parameter
+        $fields = $post;
+        unset($fields['p_signature']);
+
+        // ksort() and serialize the fields
+        ksort($fields);
+        foreach($fields as $k => $v) {
+            if(!in_array(gettype($v), array('object', 'array'))) {
+                $fields[$k] = "$v";
+            }
+        }
+        $data = serialize($fields);
+
+        // Verify the signature
+        $verification = openssl_verify($data, $signature, $public_key, OPENSSL_ALGO_SHA1);
+
+        if($verification == 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     protected function getPurchaseClientType(): string
     {

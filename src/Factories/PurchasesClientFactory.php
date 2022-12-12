@@ -68,13 +68,14 @@ class PurchasesClientFactory
                 );
                 break;
             case PurchasesClient::PAYMENT_SERVICE_PADDLE:
-                if (!isset($config['vendor_id'], $config['vendor_auth_code'], $config['sandbox'])) {
+                if (!isset($config['vendor_id'], $config['vendor_auth_code'], $config['sandbox'], $config['public_key'])) {
                     throw new InvalidArgumentException('Required parameters for paddle client was not provided.');
                 }
 
                 $client = new PaddleClient(
                     $config['vendor_id'],
                     $config['vendor_auth_code'],
+                    $config['public_key'],
                     $config['sandbox']
                 );
                 break;
