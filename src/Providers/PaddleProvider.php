@@ -61,10 +61,13 @@ class PaddleProvider
         return $subscriptionPlans;
     }
 
-    public function generatePayLink($planId, $amount,  $currency,  $trialPriceAmount): string {
+    public function generatePayLink($planId, $amount,  $currency,  $trialPriceAmount, $successUrl = null): string {
         $endpointUrl = self::URL_GENERATE_PAY_LINK;
         $baseUrl = self::VENDOR_URL;
+
         $payload = ['product_id'=> $planId, 'prices'=> ["$currency:$trialPriceAmount"], 'recurring_prices'=>["$currency:$amount"]];
+        if($successUrl)
+            $payload['return_url'] = $successUrl;
         $payLink = $this->makeRequest("POST", $baseUrl, $endpointUrl, $payload);
         return $payLink['url'];
     }

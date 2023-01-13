@@ -65,8 +65,8 @@ class PaddleClient extends PurchasesClient
         return $prices;
     }
 
-    public function generateCustomPayLink($planId, $amount,  $currency,  $trialPriceAmount, $trialPeriodDays): string {
-        $customPayLink = $this->getProvider()->generatePayLink($planId, $amount,  $currency,  $trialPriceAmount);
+    public function generateCustomPayLink($planId, $amount,  $currency,  $trialPriceAmount, $successUrl = null): string {
+        $customPayLink = $this->getProvider()->generatePayLink($planId, $amount,  $currency,  $trialPriceAmount, $successUrl);
         return $customPayLink;
     }
 
