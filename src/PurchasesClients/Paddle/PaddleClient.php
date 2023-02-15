@@ -191,4 +191,9 @@ class PaddleClient extends PurchasesClient
     {
         return self::PAYMENT_SERVICE_PADDLE;
     }
+    
+    public function getSubtruck(): ?SubtruckService
+    {
+        return null;
+    }
 }
