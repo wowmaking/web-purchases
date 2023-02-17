@@ -15,6 +15,7 @@ use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
 use Wowmaking\WebPurchases\PurchasesClients\WithoutCustomerSupportTrait;
 use Wowmaking\WebPurchases\Resources\Entities\Price;
 use Wowmaking\WebPurchases\Resources\Entities\Subscription;
+use Wowmaking\WebPurchases\Services\Subtruck\SubtruckService;
 
 /**
  * @method PaddleProvider getProvider()
@@ -57,8 +58,19 @@ class PaddleClient extends PurchasesClient
             $price->setPeriod($plan['billing_period'], $plan['billing_type']);
 
             //Hardcode trial period and price for all subscription plan
-            $price->setTrialPeriodDays(3);
-            $price->setTrialPriceAmount(1);
+            $price->setTrialPeriodDays(3);        
+            switch ($currency) {
+                case 'AUD':
+                    $trialPriceAmount = 1.49;
+                    break;
+                case 'CAD':
+                    $trialPriceAmount = 1.39;
+                    break;
+                default:
+                    $trialPriceAmount = 1;
+                    break;
+            }
+            $price->setTrialPriceAmount($trialPriceAmount);
 
             $prices[] = $price;
         }
