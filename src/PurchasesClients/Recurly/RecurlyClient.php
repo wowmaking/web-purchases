@@ -183,6 +183,11 @@ class RecurlyClient extends PurchasesClient
      */
     public function subscriptionCreationProcess(array $data): \Recurly\Resources\Subscription
     {
+        if (isset($data['currency'])) {
+            $currency = $data['currency'];
+        } else {
+            $currency = "USD";
+        }
         $subscription = [
             'plan_code' => $data['price_id'],
             'account' => [
@@ -192,7 +197,7 @@ class RecurlyClient extends PurchasesClient
                     'token_id' => $data['token_id']
                 ]
             ],
-            'currency' => 'USD'
+            'currency' => $currency
         ];
 
         if (isset($data['three_d_secure_action_result_token_id'])) {
