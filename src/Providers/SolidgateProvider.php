@@ -12,6 +12,8 @@ class SolidgateProvider
 {
     protected const BASE_SUBSCRIPTION_API_URI = 'https://subscriptions.solidgate.com/api/v1/';
 
+    protected const PAY_API_URI = 'https://pay.solidgate.com/api/v1/';
+
     /**
      * @var HttpClient
      */
@@ -35,7 +37,8 @@ class SolidgateProvider
     public function __construct(
         string $merchantId,
         string $privateKey,
-        string $baseSubscriptionApiUri = self::BASE_SUBSCRIPTION_API_URI
+        string $baseSubscriptionApiUri = self::BASE_SUBSCRIPTION_API_URI,
+        string $basePayApiUrl = self::PAY_API_URI
     ) {
         $this->merchantId = $merchantId;
         $this->privateKey = $privateKey;
@@ -43,6 +46,13 @@ class SolidgateProvider
         $this->subscriptionsApiClient = new HttpClient(
             [
                 'base_uri' => $baseSubscriptionApiUri,
+                'verify' => true,
+            ]
+        );
+
+        $this->payApiClient = new HttpClient(
+            [
+                'base_uri' => $basePayApiUrl,
                 'verify' => true,
             ]
         );
@@ -96,6 +106,21 @@ class SolidgateProvider
         return '';
     }
 
+    protected function sendRequestToPayApi(string $method, array $attributes): string
+    {
+        $request = $this->makeRequest($method, $attributes);
+
+        try {
+            $response = $this->payApiClient->send($request);
+
+            return $response->getBody()->getContents();
+        } catch (Throwable $e) {
+            $this->exception = $e;
+        }
+
+        return '';
+    }
+
     public function getException(): ?Throwable
     {
         return $this->exception;
@@ -129,8 +154,19 @@ class SolidgateProvider
             'Merchant' => $this->merchantId,
             'Signature' => $this->generateSignature($body),
         ];
-
         return new Request('POST', $path, $headers, $body);
+    }
+
+    public function checkOrderStatus($attributes) {
+        return $this->sendRequestToPayApi('status', $attributes);
+    }
+
+    public function recurring($attributes){
+        return $this->sendRequestToPayApi('recurring', $attributes);
+    }
+
+    public function refund($attributes) {
+        return $this->sendRequest('refund', $attributes);
     }
 }
 

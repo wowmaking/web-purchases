@@ -150,4 +150,29 @@ class SolidgateClient extends PurchasesClient
     {
         return self::PAYMENT_SERVICE_SOLIDGATE;
     }
+
+    public function checkOrderStatus(string $orderId){
+        return json_decode(
+            $this->provider->checkOrderStatus(['order_id' => $orderId]),
+            true
+        );
+    }
+
+    public function oneTimePayment(string $orderId, int $amount, string $currency, string $cardToken, string $orderDescription, $email, $ipAddress){
+
+        $data = [
+            'order_id' => $orderId,
+            'amount' => $amount,
+            'currency' => $currency,
+            'recurring_token' => $cardToken,
+            'order_description' => $orderDescription,
+            'customer_email' => $email,
+            'ip_address' => $ipAddress,
+            'platform' => 'WEB'
+        ];
+        return json_decode(
+            $this->provider->recurring($data),
+            true
+        );
+    }
 }
