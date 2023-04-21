@@ -158,7 +158,8 @@ class SolidgateClient extends PurchasesClient
         );
     }
 
-    public function oneTimePayment(string $orderId, int $amount, string $currency, string $cardToken, string $orderDescription, $email, $ipAddress){
+    public function oneTimePayment(string $orderId, int $amount, string $currency, string $productCode, string $cardToken,
+                                   string $orderDescription, string $email, string $ipAddress, string $successUrl, string $failUrl){
 
         $data = [
             'order_id' => $orderId,
@@ -166,8 +167,11 @@ class SolidgateClient extends PurchasesClient
             'currency' => $currency,
             'recurring_token' => $cardToken,
             'order_description' => $orderDescription,
+            'order_items' => $productCode,
             'customer_email' => $email,
             'ip_address' => $ipAddress,
+            'success_url' => $successUrl,
+            'fail_url' => $failUrl,
             'platform' => 'WEB'
         ];
         return json_decode(
