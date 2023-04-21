@@ -84,6 +84,10 @@ class SubtruckService
             'product_id' => $subscription->getPlanName()
         ];
 
+        if($subscription->isOneTimePayment()){
+            $transaction['is_one_time_payment'] = true;
+        }
+
         if (array_key_exists('credentials_id', $trackParams)) {
             $transaction['credentials_id'] = $trackParams['credentials_id'];
         }

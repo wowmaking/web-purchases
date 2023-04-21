@@ -36,6 +36,8 @@ class Subscription implements ResourcesEntityInterface
 
     public $provider_response;
 
+    public $is_one_time_payment = false;
+
     private $tracks = [];
 
     /**
@@ -293,4 +295,16 @@ class Subscription implements ResourcesEntityInterface
     {
         $this->tracks = $tracks;
     }
+
+    public function setOneTimePayment(): void
+    {
+        $this->is_one_time_payment = true;
+    }
+
+    public function isOneTimePayment(): bool
+    {
+        return $this->is_one_time_payment;
+    }
+
+
 }
