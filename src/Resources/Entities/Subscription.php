@@ -40,6 +40,8 @@ class Subscription implements ResourcesEntityInterface
 
     private $tracks = [];
 
+    private $notActiveStatuses = ['cancelled', 'canceled', 'expired'];
+
     /**
      * @return string|null
      */
@@ -305,6 +307,15 @@ class Subscription implements ResourcesEntityInterface
     {
         return $this->is_one_time_payment;
     }
+
+    public function canReactivate(): bool
+    {
+        if(in_array($this->state, $this->notActiveStatuses)){
+            return true;
+        }
+        return false;
+    }
+
 
 
 }

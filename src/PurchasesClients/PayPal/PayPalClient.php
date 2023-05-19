@@ -200,7 +200,7 @@ class PayPalClient extends PurchasesClient
         $this->setProvider(new PaypalProvider($this->clientId, $this->secretKey, $this->isSandbox));
     }
 
-    private function getSubscription(string $subscriptionId): array
+    public function getSubscription(string $subscriptionId)
     {
         return $this->getProvider()->getSubscription($subscriptionId);
     }
@@ -215,5 +215,15 @@ class PayPalClient extends PurchasesClient
     protected function getPurchaseClientType(): string
     {
         return self::PAYMENT_SERVICE_PAYPAL;
+    }
+
+    public function reactivate(string $subscriptionId): bool
+    {
+        $this->throwNoRealization(__METHOD__);
+    }
+
+    public function changePlan(string $subscriptionId, string $planCode): bool
+    {
+        $this->throwNoRealization(__METHOD__);
     }
 }

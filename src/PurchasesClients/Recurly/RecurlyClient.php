@@ -2,6 +2,7 @@
 
 namespace Wowmaking\WebPurchases\PurchasesClients\Recurly;
 
+use Recurly\Client;
 use Recurly\Client as Provider;
 use Recurly\Errors\NotFound;
 use Recurly\Resources\Plan;
@@ -214,7 +215,7 @@ class RecurlyClient extends PurchasesClient
      */
     public function cancelSubscription(string $subscriptionId): Subscription
     {
-        $response = $this->getProvider()->terminateSubscription($subscriptionId);
+        $response = $this->getProvider()->cancelSubscription($subscriptionId);
 
         return $this->buildSubscriptionResource($response);
     }
@@ -280,5 +281,29 @@ class RecurlyClient extends PurchasesClient
     protected function getPurchaseClientType(): string
     {
         return self::PAYMENT_SERVICE_RECURLY;
+    }
+
+    public function getSubscription(string $subscriptionId)
+    {
+        return $this->provider->getSubscription($subscriptionId);
+    }
+
+    public function reactivate(string $subscriptionId): bool
+    {
+        $response = $this->provider->reactivateSubscription($subscriptionId);
+        if($response->getState() == 'active'){
+            return true;
+        }
+        return false;
+    }
+
+    public function changePlan(string $subscriptionId, string $planCode): bool
+    {
+        $change_create = [
+            "plan_code" => $planCode,
+            "timeframe" => "bill_date"
+        ];
+        $change = $this->provider->createSubscriptionChange($subscriptionId, $change_create);
+        return true;
     }
 }

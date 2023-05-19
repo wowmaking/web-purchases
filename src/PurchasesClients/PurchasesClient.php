@@ -181,4 +181,13 @@ abstract class PurchasesClient implements PurchasesClientInterface
     {
         throw new LogicException(sprintf('"%s" method is not realized yet.', $methodName));
     }
+
+    abstract function getSubscription(string $subscriptionId);
+
+
+    abstract function reactivate(string $subscriptionId): bool;
+
+
+    abstract function changePlan(string $subscriptionId, string $planCode): bool;
+
 }

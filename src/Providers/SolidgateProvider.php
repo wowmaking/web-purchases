@@ -97,7 +97,6 @@ class SolidgateProvider
 
         try {
             $response = $this->subscriptionsApiClient->send($request);
-
             return $response->getBody()->getContents();
         } catch (Throwable $e) {
             $this->exception = $e;
@@ -166,7 +165,16 @@ class SolidgateProvider
     }
 
     public function refund($attributes) {
-        return $this->sendRequest('refund', $attributes);
+        return $this->sendRequestToPayApi('refund', $attributes);
     }
+
+    public function restore($attributes){
+        return $this->sendRequest('subscription/restore', $attributes);
+    }
+
+    public function changePlan($attributes){
+        return $this->sendRequest('subscription/switch-subscription-product', $attributes);
+    }
+
 }
 

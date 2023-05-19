@@ -208,4 +208,20 @@ class PaddleClient extends PurchasesClient
     {
         return null;
     }
+
+    public function getSubscription(string $subscriptionId)
+    {
+        $this->throwNoRealization(__METHOD__);
+    }
+
+    public function reactivate(string $subscriptionId): bool
+    {
+        $this->throwNoRealization(__METHOD__);
+    }
+
+    public function changePlan(string $subscriptionId, string $planCode): bool
+    {
+        $this->throwNoRealization(__METHOD__);
+    }
+
 }

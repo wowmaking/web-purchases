@@ -10,6 +10,7 @@ use Wowmaking\WebPurchases\Providers\SolidgateProvider;
 use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
 use Wowmaking\WebPurchases\PurchasesClients\WithoutCustomerSupportTrait;
 use Wowmaking\WebPurchases\Resources\Entities\Subscription;
+use yii\db\Exception;
 
 /**
  * @property SolidgateProvider $provider
@@ -32,7 +33,8 @@ class SolidgateClient extends PurchasesClient
         string $secretKey,
         string $webhookMerchantId,
         string $webhookSecretKey
-    ) {
+    )
+    {
         $this->merchantId = $merchantId;
 
         parent::__construct($secretKey);
@@ -79,7 +81,6 @@ class SolidgateClient extends PurchasesClient
             $this->provider->cancelSubscription(['subscription_id' => $subscriptionId]),
             true
         );
-
         if (!$result || $result['status'] !== 'ok') {
             $providerException = $this->provider->getException();
 
@@ -138,7 +139,7 @@ class SolidgateClient extends PurchasesClient
         return $incomeSignature === $signature;
     }
 
-    protected function getSubscription(string $subscriptionId): array
+    public function getSubscription(string $subscriptionId)
     {
         return json_decode(
             $this->provider->subscriptionStatus(['subscription_id' => $subscriptionId]),
@@ -151,7 +152,8 @@ class SolidgateClient extends PurchasesClient
         return self::PAYMENT_SERVICE_SOLIDGATE;
     }
 
-    public function checkOrderStatus(string $orderId){
+    public function checkOrderStatus(string $orderId)
+    {
         return json_decode(
             $this->provider->checkOrderStatus(['order_id' => $orderId]),
             true
@@ -159,8 +161,8 @@ class SolidgateClient extends PurchasesClient
     }
 
     public function oneTimePayment(string $orderId, int $amount, string $currency, string $productCode, string $cardToken,
-                                   string $orderDescription, string $email, string $ipAddress, string $successUrl, string $failUrl){
-
+                                   string $orderDescription, string $email, string $ipAddress, string $successUrl, string $failUrl)
+    {
         $data = [
             'order_id' => $orderId,
             'amount' => $amount,
@@ -179,4 +181,30 @@ class SolidgateClient extends PurchasesClient
             true
         );
     }
+
+    public function reactivate(string $subscriptionId): bool
+    {
+        $response = json_decode(
+            $this->provider->restore(['subscription_id' => $subscriptionId]),
+            true);
+
+        if (isset($response['status']) && $response['status'] == 'ok') {
+            return true;
+        } else {
+            throw new \Exception(json_encode($response['error']['messages']),415);
+        }
+    }
+
+    public function changePlan(string $subscriptionId, string $planCode): bool
+    {
+        $response = json_decode(
+            $this->provider->changePlan(['subscription_id' => $subscriptionId, 'new_product_id'=>$planCode ]),
+            true);
+        if (isset($response['status']) && $response['status'] == 'ok') {
+            return true;
+        } else {
+            throw new \Exception(json_encode($response['error']['messages']),415);
+        }
+    }
+
 }

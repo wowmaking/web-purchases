@@ -226,7 +226,6 @@ class StripeClient extends PurchasesClient
         }
 
         $customer = $this->getCustomer($providerResponse->customer);
-
         $subscription = new Subscription();
         $subscription->setTransactionId($providerResponse->id);
         $subscription->setPlanName($providerResponse->plan->product);
@@ -250,5 +249,20 @@ class StripeClient extends PurchasesClient
     protected function getPurchaseClientType(): string
     {
         return self::PAYMENT_SERVICE_STRIPE;
+    }
+
+    public function getSubscription(string $subscriptionId)
+    {
+        $this->throwNoRealization(__METHOD__);
+    }
+
+    public function reactivate(string $subscriptionId): bool
+    {
+        $this->throwNoRealization(__METHOD__);
+    }
+
+    public function changePlan(string $subscriptionId, string $planCode): bool
+    {
+        $this->throwNoRealization(__METHOD__);
     }
 }
