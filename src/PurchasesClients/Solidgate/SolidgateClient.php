@@ -97,6 +97,7 @@ class SolidgateClient extends PurchasesClient
 
     public function buildSubscriptionResource($providerResponse): Subscription
     {
+
         $subscription = new Subscription();
 
         $subscription->setTransactionId($providerResponse['subscription']['id']);
@@ -114,6 +115,9 @@ class SolidgateClient extends PurchasesClient
         $subscription->setProvider(PurchasesClient::PAYMENT_SERVICE_SOLIDGATE);
         $subscription->setProviderResponse($providerResponse);
 
+        if(isset($providerResponse['subscription']['cancelled_at'])){
+            $subscription->setCanceledAt($providerResponse['subscription']['cancelled_at']);
+        }
         if ($providerResponse['subscription']['trial'] && isset($providerResponse['subscription']['next_charge_at'])) {
             $subscription->setTrialStartAt($providerResponse['subscription']['started_at']);
             $subscription->setTrialEndAt($providerResponse['subscription']['next_charge_at']);

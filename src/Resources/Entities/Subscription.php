@@ -313,6 +313,9 @@ class Subscription implements ResourcesEntityInterface
         if(in_array($this->state, $this->notActiveStatuses)){
             return true;
         }
+        if($this->canceled_at) {
+            return true;
+        }
         return false;
     }
 
