@@ -3,6 +3,7 @@
 namespace Wowmaking\WebPurchases\PurchasesClients\Paddle;
 
 use Carbon\Carbon;
+use Carbon\Exceptions\Exception;
 use DateInterval;
 use DateTimeImmutable;
 use Faker\Provider\DateTime;
@@ -25,6 +26,8 @@ class PaddleClient extends PurchasesClient
     use WithoutCustomerSupportTrait;
 
     private const STATUS_ACTIVE = 'processed';
+
+    private const STATUS_CANCELED = 'deleted';
     private $vendorId;
 
     private $vendorAuthCode;
@@ -145,19 +148,53 @@ class PaddleClient extends PurchasesClient
     public function buildSubscriptionResource($providerResponse): Subscription
     {
         $subscription = new Subscription();
-
-        $subscription->setTransactionId($providerResponse['order']['subscription_id']);
-        $subscription->setPlanName($providerResponse['order']['product_id']);
-        $subscription->setEmail($providerResponse['order']['customer']['email']);
-        $subscription->setCustomerId($providerResponse['customer_id']);
-        $subscription->setCurrency($providerResponse['order']['currency']);
-        $subscription->setAmount($providerResponse['order']['total']);
-        $subscription->setCreatedAt(date('Y-m-d H:i:s'));
-
+        $subscription->setTransactionId($providerResponse['subscription_id']);
+        $subscription->setPlanName($providerResponse['plan_id']);
+        $subscription->setEmail($providerResponse['user_email']);
         $subscription->setState($providerResponse['state']);
-        $subscription->setIsActive($providerResponse['state'] === self::STATUS_ACTIVE);
+
+        if($providerResponse['last_payment']['amount'] == $providerResponse['plan']->trial_price_amount) {
+            $subscription->setTrialStartAt($providerResponse['signup_date']);
+            $trialStartDate = Carbon::parse($providerResponse['signup_date']);
+            $trialStartEndDate = $trialStartDate->addDays($providerResponse['plan']->trial_period_days);
+            $subscription->setTrialEndAt($trialStartEndDate->toDateTimeString());
+            $subscription->setExpireAt($trialStartEndDate->toDateTimeString());
+        } else {
+            $startDate = Carbon::parse($providerResponse['signup_date']);
+            $lastPaymentDate = Carbon::parse($providerResponse['last_payment']['date']);
+            $lastPaymentDate->setTime($startDate->hour, $startDate->minute, $startDate->second);
+            $period = $providerResponse['plan']->period;
+            switch ($period[2]) {
+                case 'W':
+                    $lastPaymentDate->addWeeks($period[1]);
+                    break;
+                case "M":
+                    $lastPaymentDate->addMonths($period[1]);
+                    break;
+                case "Y":
+                    $lastPaymentDate->addYears($period[1]);
+                    break;
+                case "D":
+                    $lastPaymentDate->addDays($period[1]);
+                    break;
+            }
+            $subscription->setExpireAt($lastPaymentDate->toDateTimeString());
+        }
+
+
+        if($providerResponse['state'] == self::STATUS_CANCELED){
+            $subscription->setCanceledAt(Carbon::now()->subHours(1)->toDateTimeString());
+            if($subscription->getExpireAt() > Carbon::now()->toDateTimeString()) {
+                $subscription->setIsActive(true);
+            } else {
+                $subscription->setIsActive(false);
+            }
+        } else {
+            $subscription->setIsActive(true);
+        }
         $subscription->setProvider(PurchasesClient::PAYMENT_SERVICE_PADDLE);
         $subscription->setProviderResponse($providerResponse);
+
         return $subscription;
     }
 
@@ -211,7 +248,7 @@ class PaddleClient extends PurchasesClient
 
     public function getSubscription(string $subscriptionId)
     {
-        $this->throwNoRealization(__METHOD__);
+        return $this->getProvider()->getSubscriptionStatus($subscriptionId);
     }
 
     public function reactivate(string $subscriptionId): bool

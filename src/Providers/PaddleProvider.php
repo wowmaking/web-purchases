@@ -17,6 +17,7 @@ class PaddleProvider
     private const URL_CANCEL_SUBSCRIPTION = 'subscription/users_cancel';
     private const URL_GET_PAYMENTS = 'subscription/payments';
     private const URL_RESCHEDULING_PAYMENT = 'subscription/payments_reschedule';
+    private const URL_GET_SUBSCRIPTION_STATUS = 'subscription/users';
 
 
     /**
@@ -94,6 +95,14 @@ class PaddleProvider
         $payload = ['subscription_id'=>$subscriptionId];
         $payments = $this->makeRequest("POST", $baseUrl, $endpointUrl, $payload);
         return $payments;
+    }
+
+    public function getSubscriptionStatus($subscriptionId){
+        $endpointUrl = self::URL_GET_SUBSCRIPTION_STATUS;
+        $baseUrl = self::VENDOR_URL;
+        $payload = ['subscription_id'=>$subscriptionId];
+        $subscriptionData = $this->makeRequest("POST", $baseUrl, $endpointUrl, $payload);
+        return $subscriptionData;
     }
 
     public function reschedulingPayments($paymentId, $date){
