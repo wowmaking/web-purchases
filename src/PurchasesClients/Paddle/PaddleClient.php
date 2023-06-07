@@ -148,49 +148,62 @@ class PaddleClient extends PurchasesClient
     public function buildSubscriptionResource($providerResponse): Subscription
     {
         $subscription = new Subscription();
-        $subscription->setTransactionId($providerResponse['subscription_id']);
-        $subscription->setPlanName($providerResponse['plan_id']);
-        $subscription->setEmail($providerResponse['user_email']);
-        $subscription->setState($providerResponse['state']);
+        if(!isset($providerResponse['subscription_id'])) {
+            $subscription->setTransactionId($providerResponse['order']['subscription_id']);
+            $subscription->setPlanName($providerResponse['order']['product_id']);
+            $subscription->setEmail($providerResponse['order']['customer']['email']);
+            $subscription->setCustomerId($providerResponse['customer_id']);
+            $subscription->setCurrency($providerResponse['order']['currency']);
+            $subscription->setAmount($providerResponse['order']['total']);
+            $subscription->setCreatedAt(date('Y-m-d H:i:s'));
 
-        if($providerResponse['last_payment']['amount'] == $providerResponse['plan']->trial_price_amount) {
-            $subscription->setTrialStartAt($providerResponse['signup_date']);
-            $trialStartDate = Carbon::parse($providerResponse['signup_date']);
-            $trialStartEndDate = $trialStartDate->addDays($providerResponse['plan']->trial_period_days);
-            $subscription->setTrialEndAt($trialStartEndDate->toDateTimeString());
-            $subscription->setExpireAt($trialStartEndDate->toDateTimeString());
+            $subscription->setState($providerResponse['state']);
+            $subscription->setIsActive($providerResponse['state'] === self::STATUS_ACTIVE);
         } else {
-            $startDate = Carbon::parse($providerResponse['signup_date']);
-            $lastPaymentDate = Carbon::parse($providerResponse['last_payment']['date']);
-            $lastPaymentDate->setTime($startDate->hour, $startDate->minute, $startDate->second);
-            $period = $providerResponse['plan']->period;
-            switch ($period[2]) {
-                case 'W':
-                    $lastPaymentDate->addWeeks($period[1]);
-                    break;
-                case "M":
-                    $lastPaymentDate->addMonths($period[1]);
-                    break;
-                case "Y":
-                    $lastPaymentDate->addYears($period[1]);
-                    break;
-                case "D":
-                    $lastPaymentDate->addDays($period[1]);
-                    break;
-            }
-            $subscription->setExpireAt($lastPaymentDate->toDateTimeString());
-        }
+            $subscription->setTransactionId($providerResponse['subscription_id']);
+            $subscription->setPlanName($providerResponse['plan_id']);
+            $subscription->setEmail($providerResponse['user_email']);
+            $subscription->setState($providerResponse['state']);
 
-
-        if($providerResponse['state'] == self::STATUS_CANCELED){
-            $subscription->setCanceledAt(Carbon::now()->subHours(1)->toDateTimeString());
-            if($subscription->getExpireAt() > Carbon::now()->toDateTimeString()) {
-                $subscription->setIsActive(true);
+            if ($providerResponse['last_payment']['amount'] == $providerResponse['plan']->trial_price_amount) {
+                $subscription->setTrialStartAt($providerResponse['signup_date']);
+                $trialStartDate = Carbon::parse($providerResponse['signup_date']);
+                $trialStartEndDate = $trialStartDate->addDays($providerResponse['plan']->trial_period_days);
+                $subscription->setTrialEndAt($trialStartEndDate->toDateTimeString());
+                $subscription->setExpireAt($trialStartEndDate->toDateTimeString());
             } else {
-                $subscription->setIsActive(false);
+                $startDate = Carbon::parse($providerResponse['signup_date']);
+                $lastPaymentDate = Carbon::parse($providerResponse['last_payment']['date']);
+                $lastPaymentDate->setTime($startDate->hour, $startDate->minute, $startDate->second);
+                $period = $providerResponse['plan']->period;
+                switch ($period[2]) {
+                    case 'W':
+                        $lastPaymentDate->addWeeks($period[1]);
+                        break;
+                    case "M":
+                        $lastPaymentDate->addMonths($period[1]);
+                        break;
+                    case "Y":
+                        $lastPaymentDate->addYears($period[1]);
+                        break;
+                    case "D":
+                        $lastPaymentDate->addDays($period[1]);
+                        break;
+                }
+                $subscription->setExpireAt($lastPaymentDate->toDateTimeString());
             }
-        } else {
-            $subscription->setIsActive(true);
+
+
+            if ($providerResponse['state'] == self::STATUS_CANCELED) {
+                $subscription->setCanceledAt(Carbon::now()->subHours(1)->toDateTimeString());
+                if ($subscription->getExpireAt() > Carbon::now()->toDateTimeString()) {
+                    $subscription->setIsActive(true);
+                } else {
+                    $subscription->setIsActive(false);
+                }
+            } else {
+                $subscription->setIsActive(true);
+            }
         }
         $subscription->setProvider(PurchasesClient::PAYMENT_SERVICE_PADDLE);
         $subscription->setProviderResponse($providerResponse);
