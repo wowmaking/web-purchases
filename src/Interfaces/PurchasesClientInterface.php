@@ -63,7 +63,7 @@ interface PurchasesClientInterface
      * @param string $subscriptionId
      * @return Subscription
      */
-    public function cancelSubscription(string $subscriptionId): Subscription;
+    public function cancelSubscription(string $subscriptionId, bool $force = false): Subscription;
 
     /**
      * @param $providerResponse

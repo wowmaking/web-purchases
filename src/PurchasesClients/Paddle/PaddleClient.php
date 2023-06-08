@@ -136,7 +136,7 @@ class PaddleClient extends PurchasesClient
         $this->throwNoRealization(__METHOD__);
     }
 
-    public function cancelSubscription(string $subscriptionId): Subscription
+    public function cancelSubscription(string $subscriptionId, bool $force = false): Subscription
     {
         $this->getProvider()->cancelSubscription($subscriptionId, 'Cancel request.');
 

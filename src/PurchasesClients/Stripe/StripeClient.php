@@ -187,7 +187,7 @@ class StripeClient extends PurchasesClient
      * @return Subscription
      * @throws \Stripe\Exception\ApiErrorException
      */
-    public function cancelSubscription(string $subscriptionId): Subscription
+    public function cancelSubscription(string $subscriptionId, bool $force = false): Subscription
     {
         $response = $this->getProvider()->subscriptions->retrieve($subscriptionId)->cancel();
 

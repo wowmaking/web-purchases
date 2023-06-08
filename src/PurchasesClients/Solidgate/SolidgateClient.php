@@ -64,6 +64,7 @@ class SolidgateClient extends PurchasesClient
         $subscriptionData = $this->getSubscription($subscriptionId);
 
         if ($subscriptionData['customer']['customer_account_id'] !== $customerId) {
+
             throw new LogicException('Subscription assigned for another customer.');
         }
 
@@ -75,10 +76,10 @@ class SolidgateClient extends PurchasesClient
         $this->throwNoRealization(__METHOD__);
     }
 
-    public function cancelSubscription(string $subscriptionId): Subscription
+    public function cancelSubscription(string $subscriptionId, bool $force = false): Subscription
     {
         $result = json_decode(
-            $this->provider->cancelSubscription(['subscription_id' => $subscriptionId]),
+            $this->provider->cancelSubscription(['subscription_id' => $subscriptionId, 'force' => $force]),
             true
         );
         if (!$result || $result['status'] !== 'ok') {
@@ -118,9 +119,14 @@ class SolidgateClient extends PurchasesClient
         if(isset($providerResponse['subscription']['cancelled_at'])){
             $subscription->setCanceledAt($providerResponse['subscription']['cancelled_at']);
         }
-        if ($providerResponse['subscription']['trial'] && isset($providerResponse['subscription']['next_charge_at'])) {
+
+        if ($providerResponse['subscription']['trial']) {
             $subscription->setTrialStartAt($providerResponse['subscription']['started_at']);
+        }
+        if(isset($providerResponse['subscription']['next_charge_at'])){
             $subscription->setTrialEndAt($providerResponse['subscription']['next_charge_at']);
+        } else {
+            $subscription->setTrialEndAt($providerResponse['subscription']['expired_at']);
         }
 
         return $subscription;
@@ -209,6 +215,28 @@ class SolidgateClient extends PurchasesClient
         } else {
             throw new \Exception(json_encode($response['error']['messages']),415);
         }
+    }
+
+    public function createSubscriptionByCardToken(string $orderId, string $productCode, string $cardToken,
+                                                  string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $successUrl, string $failUrl){
+        $data = [
+            'order_id' => $orderId,
+            'recurring_token' => $cardToken,
+            'order_description' => $orderDescription,
+            'product_id' =>$productCode,
+            'customer_email' => $email,
+            'ip_address' => $ipAddress,
+            'success_url' => $successUrl,
+            'payment_type' => 'recurring',
+            'fail_url' => $failUrl,
+            'platform' => 'WEB',
+            'customer_account_id' => $customerAccountId,
+        ];
+        return json_decode(
+            $this->provider->recurring($data),
+            true
+        );
+
     }
 
 }

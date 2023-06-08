@@ -213,7 +213,7 @@ class RecurlyClient extends PurchasesClient
      * @return Subscription
      * @throws \Exception
      */
-    public function cancelSubscription(string $subscriptionId): Subscription
+    public function cancelSubscription(string $subscriptionId, bool $force = false): Subscription
     {
         $response = $this->getProvider()->cancelSubscription($subscriptionId);
 
