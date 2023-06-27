@@ -20,6 +20,7 @@ class SolidgateClient extends PurchasesClient
     use WithoutCustomerSupportTrait;
 
     private const STATUS_ACTIVE = 'active';
+    private const STATUS_REDEMPTION = 'redemption';
 
     protected $webHookProvider;
 
@@ -112,7 +113,13 @@ class SolidgateClient extends PurchasesClient
         $subscription->setCreatedAt($providerResponse['subscription']['started_at']);
         $subscription->setExpireAt($providerResponse['subscription']['expired_at']);
         $subscription->setState($providerResponse['subscription']['status']);
-        $subscription->setIsActive($providerResponse['subscription']['status'] === self::STATUS_ACTIVE);
+        $subscription->setIsActive(
+            in_array(
+                $providerResponse['subscription']['status'],
+                [self::STATUS_ACTIVE, self::STATUS_REDEMPTION],
+                true
+            )
+        );
         $subscription->setProvider(PurchasesClient::PAYMENT_SERVICE_SOLIDGATE);
         $subscription->setProviderResponse($providerResponse);
 
