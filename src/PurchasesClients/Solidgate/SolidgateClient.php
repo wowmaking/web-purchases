@@ -129,11 +129,11 @@ class SolidgateClient extends PurchasesClient
 
         if ($providerResponse['subscription']['trial']) {
             $subscription->setTrialStartAt($providerResponse['subscription']['started_at']);
-        }
-        if(isset($providerResponse['subscription']['next_charge_at'])){
-            $subscription->setTrialEndAt($providerResponse['subscription']['next_charge_at']);
-        } else {
-            $subscription->setTrialEndAt($providerResponse['subscription']['expired_at']);
+            if (isset($providerResponse['subscription']['next_charge_at'])) {
+                $subscription->setTrialEndAt($providerResponse['subscription']['next_charge_at']);
+            } else {
+                $subscription->setTrialEndAt($providerResponse['subscription']['expired_at']);
+            }
         }
 
         return $subscription;
