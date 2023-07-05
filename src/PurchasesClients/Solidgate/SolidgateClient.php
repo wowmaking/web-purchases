@@ -79,6 +79,12 @@ class SolidgateClient extends PurchasesClient
 
     public function cancelSubscription(string $subscriptionId, bool $force = false): Subscription
     {
+        if(!$force) {
+             $subscriptionData = $this->getSubscription($subscriptionId);
+             if($subscriptionData['subscription']['status'] == 'redemption') {
+                 $force = true;
+             }
+        }
         $result = json_decode(
             $this->provider->cancelSubscription(['subscription_id' => $subscriptionId, 'force' => $force]),
             true
