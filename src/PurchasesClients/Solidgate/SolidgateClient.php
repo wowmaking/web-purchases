@@ -9,6 +9,7 @@ use LogicException;
 use Wowmaking\WebPurchases\Providers\SolidgateProvider;
 use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
 use Wowmaking\WebPurchases\PurchasesClients\WithoutCustomerSupportTrait;
+use Wowmaking\WebPurchases\Resources\Entities\Price;
 use Wowmaking\WebPurchases\Resources\Entities\Subscription;
 use yii\db\Exception;
 
@@ -45,12 +46,45 @@ class SolidgateClient extends PurchasesClient
 
     public function isSupportsPrices(): bool
     {
-        return false;
+        return true;
     }
 
     public function getPrices(array $pricesIds = []): array
     {
-        $this->throwNoRealization(__METHOD__);
+        $limit = 100;
+        $offset = 0;
+        $products = [];
+        do {
+            $partProducts = $this->retriveProducts($limit, $offset);
+            $products = array_merge($products, $partProducts['data']);
+            if(count($products) ==  $partProducts['pagination']['total_count']){
+                break;
+            }
+            $offset+=$limit;
+        } while(true);
+        foreach($products as $product) {
+            $priceData = $this->retriveProductPrice($product['id']);
+            foreach($priceData['data'] as $item){
+                if($item['default']){
+                    $priceData = $item;
+                }
+            }
+
+            $price = new Price();
+            $price->setId($product['id']);
+            $price->setAmount($priceData['product_price']/100);
+            $price->setCurrency($priceData['currency']);
+            $price->setPeriod($product['billing_period']['value'], strtoupper($product['billing_period']['unit'][0]));
+
+            if(isset($product['trial']) && isset($product['trial']['billing_period'])){
+                if($product['trial']['billing_period']['unit'] == 'day'){
+                    $price->setTrialPeriodDays($product['trial']['billing_period']['value']);
+                }
+                $price->setTrialPriceAmount($priceData['trial_price']/100);
+            }
+            $prices[] = $price;
+        }
+        return $prices;
     }
 
     public function subscriptionCreationProcess(array $data)
@@ -249,7 +283,20 @@ class SolidgateClient extends PurchasesClient
             $this->provider->recurring($data),
             true
         );
-
     }
 
+    public function retriveProducts($limit, $offset) {
+        $data = ['pagination[limit]' => $limit, 'pagination[offset]' => $offset, 'filter[status]'=> 'active'];
+        return json_decode(
+            $this->provider->retriveProducts($data),
+            true
+        );
+    }
+
+    public function retriveProductPrice($productId){
+        return json_decode(
+            $this->provider->retriveProductPrice($productId),
+            true
+        );
+    }
 }

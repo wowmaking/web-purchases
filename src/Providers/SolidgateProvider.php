@@ -94,11 +94,25 @@ class SolidgateProvider
     protected function sendRequest(string $method, array $attributes): string
     {
         $request = $this->makeRequest($method, $attributes);
-
         try {
             $response = $this->subscriptionsApiClient->send($request);
             return $response->getBody()->getContents();
         } catch (Throwable $e) {
+
+            $this->exception = $e;
+        }
+
+        return '';
+    }
+
+    protected function sendGetRequest(string $method, array $attributes): string
+    {
+        $request = $this->makeGetRequest($method, $attributes);
+        try {
+            $response = $this->subscriptionsApiClient->send($request);
+            return $response->getBody()->getContents();
+        } catch (Throwable $e) {
+            throw $e;
             $this->exception = $e;
         }
 
@@ -156,6 +170,17 @@ class SolidgateProvider
         return new Request('POST', $path, $headers, $body);
     }
 
+    protected function makeGetRequest(string $path, array $attributes): Request
+    {
+        $headers = [
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+            'Merchant' => $this->merchantId,
+            'Signature' => $this->generateSignature(''),
+        ];
+        return new Request('GET', $path.'?'.http_build_query($attributes), $headers);
+    }
+
     public function checkOrderStatus($attributes) {
         return $this->sendRequestToPayApi('status', $attributes);
     }
@@ -175,6 +200,17 @@ class SolidgateProvider
     public function changePlan($attributes){
         return $this->sendRequest('subscription/switch-subscription-product', $attributes);
     }
+
+    public function retriveProducts($attributes) {
+        return $this->sendGetRequest('products', $attributes);
+    }
+
+    public function retriveProductPrice($productId) {
+        return $this->sendGetRequest("products/$productId/prices",[]);
+    }
+
+
+
 
 }
 
