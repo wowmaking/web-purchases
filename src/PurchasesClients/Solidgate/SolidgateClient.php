@@ -229,6 +229,7 @@ class SolidgateClient extends PurchasesClient
             'order_items' => $productCode,
             'customer_email' => $email,
             'ip_address' => $ipAddress,
+            'payment_type' => '1-click',
             'success_url' => $successUrl,
             'fail_url' => $failUrl,
             'platform' => 'WEB'
