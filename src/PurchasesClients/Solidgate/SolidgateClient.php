@@ -300,4 +300,23 @@ class SolidgateClient extends PurchasesClient
             true
         );
     }
+
+    public function applePay($productId, $orderId, $orderDescription, $customerEmail, $ipAddress, $platform, $signature, $data, $header, $version) {
+        $data = [
+            'product_id' => $productId,
+            'order_id' => $orderId,
+            'order_description' => $orderDescription,
+            'customer_email' => $customerEmail,
+            'ip_address' => $ipAddress,
+            'platform' => $platform,
+            'data' => $data,
+            'signature' => $signature,
+            'header' => $header,
+            'version' => $version
+        ];
+        return json_decode(
+            $this->provider->applePay($data),
+            true
+        );
+    }
 }

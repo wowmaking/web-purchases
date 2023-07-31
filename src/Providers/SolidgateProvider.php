@@ -209,6 +209,10 @@ class SolidgateProvider
         return $this->sendGetRequest("products/$productId/prices",[]);
     }
 
+    public function applePay($attributes){
+        return $this->sendRequestToPayApi("apple-pay", $attributes);
+    }
+
 
 
 
