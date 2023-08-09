@@ -218,7 +218,7 @@ class SolidgateClient extends PurchasesClient
     }
 
     public function oneTimePayment(string $orderId, int $amount, string $currency, string $productCode, string $cardToken,
-                                   string $orderDescription, string $email, string $ipAddress, string $successUrl, string $failUrl)
+                                   string $orderDescription, string $email, string $ipAddress, string $successUrl, string $failUrl, string $idfm)
     {
         $data = [
             'order_id' => $orderId,
@@ -227,6 +227,10 @@ class SolidgateClient extends PurchasesClient
             'recurring_token' => $cardToken,
             'order_description' => $orderDescription,
             'order_items' => $productCode,
+            'order_metadata' => [
+                'idfm' => $idfm,
+                'one_time_product_code' => $productCode,
+            ],
             'customer_email' => $email,
             'ip_address' => $ipAddress,
             'payment_type' => '1-click',
@@ -266,11 +270,14 @@ class SolidgateClient extends PurchasesClient
     }
 
     public function createSubscriptionByCardToken(string $orderId, string $productCode, string $cardToken,
-                                                  string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $successUrl, string $failUrl){
+                                                  string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $successUrl, string $failUrl, string $idfm){
         $data = [
             'order_id' => $orderId,
             'recurring_token' => $cardToken,
             'order_description' => $orderDescription,
+            'order_metadata' => [
+                'idfm' => $idfm,
+            ],
             'product_id' =>$productCode,
             'customer_email' => $email,
             'ip_address' => $ipAddress,
@@ -301,18 +308,21 @@ class SolidgateClient extends PurchasesClient
         );
     }
 
-    public function applePay($productId, $orderId, $orderDescription, $customerEmail, $ipAddress, $platform, $signature, $data, $header, $version) {
+    public function applePay($productId, $orderId, $idfm, $customerEmail, $ipAddress, $platform, $signature, $data, $header, $version) {
         $data = [
             'product_id' => $productId,
             'order_id' => $orderId,
-            'order_description' => $orderDescription,
+            'order_description' => $idfm,
             'customer_email' => $customerEmail,
             'ip_address' => $ipAddress,
             'platform' => $platform,
             'data' => $data,
             'signature' => $signature,
             'header' => $header,
-            'version' => $version
+            'version' => $version,
+            'order_metadata' => [
+                'idfm' => $idfm
+            ],
         ];
         return json_decode(
             $this->provider->applePay($data),
