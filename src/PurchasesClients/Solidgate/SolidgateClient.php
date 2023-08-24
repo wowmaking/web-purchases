@@ -227,6 +227,8 @@ class SolidgateClient extends PurchasesClient
             'recurring_token' => $cardToken,
             'order_description' => $orderDescription,
             'order_items' => $productCode,
+            'type' => 'auth',
+            'settle_interval' => 144,
             'order_metadata' => [
                 'idfm' => $idfm,
                 'one_time_product_code' => $productCode,
