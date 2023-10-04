@@ -315,6 +315,7 @@ class SolidgateClient extends PurchasesClient
             'product_id' => $productId,
             'order_id' => $orderId,
             'order_description' => $idfm,
+            'customer_account_id' => $idfm,
             'customer_email' => $customerEmail,
             'ip_address' => $ipAddress,
             'platform' => $platform,
