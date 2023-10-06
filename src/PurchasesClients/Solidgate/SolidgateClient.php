@@ -310,12 +310,12 @@ class SolidgateClient extends PurchasesClient
         );
     }
 
-    public function applePay($productId, $orderId, $idfm, $customerEmail, $ipAddress, $platform, $signature, $data, $header, $version) {
+    public function applePay($productId, $orderId, $idfm, $customerId, $customerEmail, $ipAddress, $platform, $signature, $data, $header, $version) {
         $data = [
             'product_id' => $productId,
             'order_id' => $orderId,
             'order_description' => $idfm,
-            'customer_account_id' => $idfm,
+            'customer_account_id' => $customerId,
             'customer_email' => $customerEmail,
             'ip_address' => $ipAddress,
             'platform' => $platform,
