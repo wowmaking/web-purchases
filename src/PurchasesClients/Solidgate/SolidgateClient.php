@@ -111,7 +111,7 @@ class SolidgateClient extends PurchasesClient
         $this->throwNoRealization(__METHOD__);
     }
 
-    public function cancelSubscription(string $subscriptionId, bool $force = false): Subscription
+    public function cancelSubscription(string $subscriptionId, bool $force = false, string $cancelCode = "8.14"): Subscription
     {
         if(!$force) {
              $subscriptionData = $this->getSubscription($subscriptionId);
@@ -120,7 +120,7 @@ class SolidgateClient extends PurchasesClient
              }
         }
         $result = json_decode(
-            $this->provider->cancelSubscription(['subscription_id' => $subscriptionId, 'force' => $force]),
+            $this->provider->cancelSubscription(['subscription_id' => $subscriptionId, 'force' => $force, 'cancel_code'=>$cancelCode]),
             true
         );
         if (!$result || $result['status'] !== 'ok') {
