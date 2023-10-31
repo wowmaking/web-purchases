@@ -144,4 +144,8 @@ class PaypalProvider
 
         $this->accessToken = $data['access_token'];
     }
+
+    public function getTransactions($startDate, $endDate, $page) {
+        return $this->makeRequest('GET', "/v1/reporting/transactions?start_date={$startDate}T00:00:00-0000&end_date={$endDate}T23:59:59-0000&page_size=500&page=$page");
+    }
 }

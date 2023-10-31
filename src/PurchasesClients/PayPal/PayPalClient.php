@@ -226,4 +226,8 @@ class PayPalClient extends PurchasesClient
     {
         $this->throwNoRealization(__METHOD__);
     }
+
+    public function getTransactions($startDate, $endDate, $page) {
+        return $this->getProvider()->getTransactions($startDate, $endDate, $page);
+    }
 }

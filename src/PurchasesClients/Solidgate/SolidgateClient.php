@@ -332,4 +332,34 @@ class SolidgateClient extends PurchasesClient
             true
         );
     }
+    public function getSubscriptionReport($dateFrom, $dateTo, $cursor = null) {
+
+        $data = [
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+        ];
+        if($cursor) {
+            $data['next_page_iterator'] = $cursor;
+        }
+        return json_decode(
+            $this->provider->subscriptionReport($data),
+            true
+        );
+    }
+
+    public function getCardOrderReport($dateFrom, $dateTo, $cursor = null) {
+
+        $data = [
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+        ];
+        if($cursor) {
+            $data['next_page_iterator'] = $cursor;
+        }
+        return json_decode(
+            $this->provider->cardOrderReport($data),
+            true
+        );
+    }
+
 }

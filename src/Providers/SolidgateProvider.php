@@ -14,10 +14,22 @@ class SolidgateProvider
 
     protected const PAY_API_URI = 'https://pay.solidgate.com/api/v1/';
 
+    protected const REPORT_API_URI = 'https://reports.solidgate.com/api/v1/';
+
     /**
      * @var HttpClient
      */
     protected $subscriptionsApiClient;
+
+    /**
+     * @var HttpClient
+     */
+    protected $payApiClient;
+
+    /**
+     * @var HttpClient
+     */
+    protected $reportApiClient;
 
     /**
      * @var string
@@ -38,7 +50,8 @@ class SolidgateProvider
         string $merchantId,
         string $privateKey,
         string $baseSubscriptionApiUri = self::BASE_SUBSCRIPTION_API_URI,
-        string $basePayApiUrl = self::PAY_API_URI
+        string $basePayApiUrl = self::PAY_API_URI,
+        string $baseReportApiUrl = self::REPORT_API_URI
     ) {
         $this->merchantId = $merchantId;
         $this->privateKey = $privateKey;
@@ -53,6 +66,13 @@ class SolidgateProvider
         $this->payApiClient = new HttpClient(
             [
                 'base_uri' => $basePayApiUrl,
+                'verify' => true,
+            ]
+        );
+
+        $this->reportApiClient = new HttpClient(
+            [
+                'base_uri' => $baseReportApiUrl,
                 'verify' => true,
             ]
         );
@@ -126,6 +146,20 @@ class SolidgateProvider
         try {
             $response = $this->payApiClient->send($request);
 
+            return $response->getBody()->getContents();
+        } catch (Throwable $e) {
+            $this->exception = $e;
+        }
+
+        return '';
+    }
+
+
+    protected function sendRequestToReportApi(string $method, array $attributes): string
+    {
+        $request = $this->makeRequest($method, $attributes);
+        try {
+            $response = $this->reportApiClient->send($request);
             return $response->getBody()->getContents();
         } catch (Throwable $e) {
             $this->exception = $e;
@@ -213,8 +247,13 @@ class SolidgateProvider
         return $this->sendRequestToPayApi("apple-pay", $attributes);
     }
 
+    public function subscriptionReport($attributes) {
+        return $this->sendRequestToReportApi('subscriptions', $attributes);
+    }
 
-
+    public function cardOrderReport($attributes) {
+        return $this->sendRequestToReportApi('card-orders', $attributes);
+    }
 
 }
 
