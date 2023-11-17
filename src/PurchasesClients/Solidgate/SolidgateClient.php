@@ -133,7 +133,6 @@ class SolidgateClient extends PurchasesClient
             throw $providerException;
         }
 
-
         return $this->buildSubscriptionResource($this->getSubscription($subscriptionId));
     }
 
@@ -362,4 +361,9 @@ class SolidgateClient extends PurchasesClient
         );
     }
 
+    public function customRequestToPayApi(string $method, array $params=[]){
+        return json_decode(
+            $this->provider->sendRequestToPayApi($method, $params),
+        true);
+    }
 }

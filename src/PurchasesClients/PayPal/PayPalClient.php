@@ -205,6 +205,16 @@ class PayPalClient extends PurchasesClient
         return $this->getProvider()->getSubscription($subscriptionId);
     }
 
+    public function checkOrderStatus(string $orderId)
+    {
+        return $this->getProvider()->checkOrderStatus($orderId);
+    }
+
+    public function refund(string $orderId, float $amount, string $currency)
+    {
+        return $this->getProvider()->refund($orderId, $amount, $currency);
+    }
+
     private function getCustomerIdFromCustomId(string $customId): string
     {
         $customIdParts = explode('|', $customId);

@@ -139,7 +139,7 @@ class SolidgateProvider
         return '';
     }
 
-    protected function sendRequestToPayApi(string $method, array $attributes): string
+    public function sendRequestToPayApi(string $method, array $attributes): string
     {
         $request = $this->makeRequest($method, $attributes);
 
