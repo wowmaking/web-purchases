@@ -16,6 +16,8 @@ class SolidgateProvider
 
     protected const REPORT_API_URI = 'https://reports.solidgate.com/api/v1/';
 
+    protected const GATE_API_URI = 'https://gate.solidgate.com/api/v1/';
+
     /**
      * @var HttpClient
      */
@@ -30,6 +32,11 @@ class SolidgateProvider
      * @var HttpClient
      */
     protected $reportApiClient;
+
+    /**
+     * @var HttpClient
+     */
+    protected $gateApiClient;
 
     /**
      * @var string
@@ -51,7 +58,8 @@ class SolidgateProvider
         string $privateKey,
         string $baseSubscriptionApiUri = self::BASE_SUBSCRIPTION_API_URI,
         string $basePayApiUrl = self::PAY_API_URI,
-        string $baseReportApiUrl = self::REPORT_API_URI
+        string $baseReportApiUrl = self::REPORT_API_URI,
+        string $baseGateApiUrl = self::GATE_API_URI,
     ) {
         $this->merchantId = $merchantId;
         $this->privateKey = $privateKey;
@@ -73,6 +81,12 @@ class SolidgateProvider
         $this->reportApiClient = new HttpClient(
             [
                 'base_uri' => $baseReportApiUrl,
+                'verify' => true,
+            ]
+        );
+        $this->gateApiClient = new HttpClient(
+            [
+                'base_uri' => $baseGateApiUrl,
                 'verify' => true,
             ]
         );
@@ -154,6 +168,20 @@ class SolidgateProvider
         return '';
     }
 
+    public function sendRequestToGateApi(string $method, array $attributes): string
+    {
+        $request = $this->makeRequest($method, $attributes);
+        try {
+            $response = $this->gateApiClient->send($request);
+            return $response->getBody()->getContents();
+        } catch (Throwable $e) {
+            $this->exception = $e;
+        }
+
+        return '';
+    }
+
+
 
     protected function sendRequestToReportApi(string $method, array $attributes): string
     {
@@ -167,6 +195,7 @@ class SolidgateProvider
 
         return '';
     }
+
 
     public function getException(): ?Throwable
     {
@@ -219,8 +248,16 @@ class SolidgateProvider
         return $this->sendRequestToPayApi('status', $attributes);
     }
 
+    public function checkOrderStatusAlternativePayment($attributes) {
+        return $this->sendRequestToGateApi('status', $attributes);
+    }
+
     public function recurring($attributes){
         return $this->sendRequestToPayApi('recurring', $attributes);
+    }
+
+    public function recurringAlternativePayment($attributes){
+        return $this->sendRequestToGateApi('recurring', $attributes);
     }
 
     public function refund($attributes) {
@@ -253,6 +290,10 @@ class SolidgateProvider
 
     public function cardOrderReport($attributes) {
         return $this->sendRequestToReportApi('card-orders', $attributes);
+    }
+
+    public function initAlternativePayment($attributes) {
+        return $this->sendRequestToGateApi('init-payment', $attributes);
     }
 
 }

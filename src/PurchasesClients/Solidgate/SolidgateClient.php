@@ -216,6 +216,14 @@ class SolidgateClient extends PurchasesClient
         );
     }
 
+    public function checkOrderStatusAlternativePayment(string $orderId)
+    {
+        return json_decode(
+            $this->provider->checkOrderStatusAlternativePayment(['order_id' => $orderId]),
+            true
+        );
+    }
+
     public function oneTimePayment(string $orderId, int $amount, string $currency, string $productCode, string $cardToken,
                                    string $orderDescription, string $email, string $ipAddress, string $successUrl, string $failUrl, string $idfm)
     {
@@ -244,6 +252,30 @@ class SolidgateClient extends PurchasesClient
             true
         );
     }
+
+    public function oneTimePaymentAlternativePayment(string $orderId, int $amount, string $currency, string $productCode, string $token,
+                                   string $orderDescription, string $email, string $ipAddress, string $idfm)
+    {
+        $data = [
+            'order_id' => $orderId,
+            'amount' => $amount,
+            'currency' => $currency,
+            'token' => $token,
+            'order_description' => $orderDescription,
+            'order_metadata' => [
+                'idfm' => $idfm,
+                'one_time_product_code' => $productCode,
+            ],
+            'customer_email' => $email,
+            'ip_address' => $ipAddress,
+            'platform' => 'WEB'
+        ];
+        return json_decode(
+            $this->provider->recurringAlternativePayment($data),
+            true
+        );
+    }
+
 
     public function reactivate(string $subscriptionId): bool
     {
@@ -365,5 +397,26 @@ class SolidgateClient extends PurchasesClient
         return json_decode(
             $this->provider->sendRequestToPayApi($method, $params),
         true);
+    }
+
+    public function initAlternativePayment(string $paymentMethod, string $orderId, string $productId,
+                                           string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $idfm){
+        $params = [
+            'payment_method' => $paymentMethod,
+            'product_id' => $productId,
+            'order_id' => $orderId,
+            'order_description' => $orderDescription,
+            'customer_account_id' => $customerAccountId,
+            'customer_email' => $email,
+            'ip_address' => $ipAddress,
+            'platform' => 'WEB',
+            'order_metadata' => [
+                'idfm' => $idfm
+            ],
+        ];
+        return json_decode(
+            $this->provider->initAlternativePayment($params),
+            true);
+
     }
 }
