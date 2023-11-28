@@ -76,11 +76,11 @@ class PaypalProvider
         if (isset($result['links'])) {
             foreach ($result['links'] as $link) {
                 if ($link['rel'] === 'next') {
-                    return array_merge($plans, $this->collectAllPlans($link['href']));
+                    $url = str_replace('api', 'api-m', $link['href']);
+                    return array_merge($plans, $this->collectAllPlans($url));
                 }
             }
         }
-
         return $plans;
     }
 
