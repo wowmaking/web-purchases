@@ -399,6 +399,12 @@ class SolidgateClient extends PurchasesClient
         true);
     }
 
+    public function customRequestToGateApi(string $method, array $params=[]){
+        return json_decode(
+            $this->provider->sendRequestToGateApi($method, $params),
+            true);
+    }
+
     public function initAlternativePayment(string $paymentMethod, string $orderId, string $productId,
                                            string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $idfm){
         $params = [
