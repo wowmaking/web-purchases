@@ -60,7 +60,7 @@ class PayPalClient extends PurchasesClient
 
             $price = new Price();
             $price->setId($plan['id']);
-
+            $price->setProductName($plan['name']);
             $trialCycle = false;
             foreach ($plan['billing_cycles'] as $billingCycle) {
                 if ($billingCycle['tenure_type'] === self::TENURE_TYPE_REGULAR) {

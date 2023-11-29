@@ -75,6 +75,7 @@ class SolidgateClient extends PurchasesClient
             $price->setAmount($priceData['product_price']/100);
             $price->setCurrency($priceData['currency']);
             $price->setPeriod($product['billing_period']['value'], strtoupper($product['billing_period']['unit'][0]));
+            $price->setProductName($product['name']);
 
             if(isset($product['trial']) && isset($product['trial']['billing_period'])){
                 if($product['trial']['billing_period']['unit'] == 'day'){

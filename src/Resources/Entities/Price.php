@@ -22,6 +22,8 @@ class Price implements ResourcesEntityInterface
 
     public $trial_price_amount;
 
+    public $product_name;
+
     /**
      * @return mixed
      */
@@ -126,5 +128,13 @@ class Price implements ResourcesEntityInterface
         }
 
         $this->period = sprintf('P%d%s', $length, $unit);
+    }
+
+    public function getProductName(){
+        return $this->product_name;
+    }
+
+    public function setProductName($productName){
+        $this->product_name = $productName;
     }
 }
