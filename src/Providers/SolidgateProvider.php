@@ -59,7 +59,7 @@ class SolidgateProvider
         string $baseSubscriptionApiUri = self::BASE_SUBSCRIPTION_API_URI,
         string $basePayApiUrl = self::PAY_API_URI,
         string $baseReportApiUrl = self::REPORT_API_URI,
-        string $baseGateApiUrl = self::GATE_API_URI,
+        string $baseGateApiUrl = self::GATE_API_URI
     ) {
         $this->merchantId = $merchantId;
         $this->privateKey = $privateKey;
