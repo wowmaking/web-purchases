@@ -57,31 +57,31 @@ class SolidgateClient extends PurchasesClient
         do {
             $partProducts = $this->retriveProducts($limit, $offset);
             $products = array_merge($products, $partProducts['data']);
-            if(count($products) ==  $partProducts['pagination']['total_count']){
+            if (count($products) == $partProducts['pagination']['total_count']) {
                 break;
             }
-            $offset+=$limit;
-        } while(true);
-        foreach($products as $product) {
+            $offset += $limit;
+        } while (true);
+        foreach ($products as $product) {
             $priceData = $this->retriveProductPrice($product['id']);
-            foreach($priceData['data'] as $item){
-                if($item['default']){
+            foreach ($priceData['data'] as $item) {
+                if ($item['default']) {
                     $priceData = $item;
                 }
             }
 
             $price = new Price();
             $price->setId($product['id']);
-            $price->setAmount($priceData['product_price']/100);
+            $price->setAmount($priceData['product_price'] / 100);
             $price->setCurrency($priceData['currency']);
             $price->setPeriod($product['billing_period']['value'], strtoupper($product['billing_period']['unit'][0]));
             $price->setProductName($product['name']);
 
-            if(isset($product['trial']) && isset($product['trial']['billing_period'])){
-                if($product['trial']['billing_period']['unit'] == 'day'){
+            if (isset($product['trial']) && isset($product['trial']['billing_period'])) {
+                if ($product['trial']['billing_period']['unit'] == 'day') {
                     $price->setTrialPeriodDays($product['trial']['billing_period']['value']);
                 }
-                $price->setTrialPriceAmount($priceData['trial_price']/100);
+                $price->setTrialPriceAmount($priceData['trial_price'] / 100);
             }
             $prices[] = $price;
         }
@@ -114,14 +114,14 @@ class SolidgateClient extends PurchasesClient
 
     public function cancelSubscription(string $subscriptionId, bool $force = false, string $cancelCode = "8.14"): Subscription
     {
-        if(!$force) {
-             $subscriptionData = $this->getSubscription($subscriptionId);
-             if($subscriptionData['subscription']['status'] == 'redemption') {
-                 $force = true;
-             }
+        if (!$force) {
+            $subscriptionData = $this->getSubscription($subscriptionId);
+            if ($subscriptionData['subscription']['status'] == 'redemption') {
+                $force = true;
+            }
         }
         $result = json_decode(
-            $this->provider->cancelSubscription(['subscription_id' => $subscriptionId, 'force' => $force, 'cancel_code'=>$cancelCode]),
+            $this->provider->cancelSubscription(['subscription_id' => $subscriptionId, 'force' => $force, 'cancel_code' => $cancelCode]),
             true
         );
         if (!$result || $result['status'] !== 'ok') {
@@ -163,7 +163,7 @@ class SolidgateClient extends PurchasesClient
         $subscription->setProvider(PurchasesClient::PAYMENT_SERVICE_SOLIDGATE);
         $subscription->setProviderResponse($providerResponse);
 
-        if(isset($providerResponse['subscription']['cancelled_at'])){
+        if (isset($providerResponse['subscription']['cancelled_at'])) {
             $subscription->setCanceledAt($providerResponse['subscription']['cancelled_at']);
         }
 
@@ -255,7 +255,7 @@ class SolidgateClient extends PurchasesClient
     }
 
     public function oneTimePaymentAlternativePayment(string $orderId, int $amount, string $currency, string $productCode, string $token,
-                                   string $orderDescription, string $email, string $ipAddress, string $idfm)
+                                                     string $orderDescription, string $email, string $ipAddress, string $idfm)
     {
         $data = [
             'order_id' => $orderId,
@@ -287,24 +287,25 @@ class SolidgateClient extends PurchasesClient
         if (isset($response['status']) && $response['status'] == 'ok') {
             return true;
         } else {
-            throw new \Exception(json_encode($response['error']['messages']),415);
+            throw new \Exception(json_encode($response['error']['messages']), 415);
         }
     }
 
     public function changePlan(string $subscriptionId, string $planCode): bool
     {
         $response = json_decode(
-            $this->provider->changePlan(['subscription_id' => $subscriptionId, 'new_product_id'=>$planCode ]),
+            $this->provider->changePlan(['subscription_id' => $subscriptionId, 'new_product_id' => $planCode]),
             true);
         if (isset($response['status']) && $response['status'] == 'ok') {
             return true;
         } else {
-            throw new \Exception(json_encode($response['error']['messages']),415);
+            throw new \Exception(json_encode($response['error']['messages']), 415);
         }
     }
 
     public function createSubscriptionByCardToken(string $orderId, string $productCode, string $cardToken,
-                                                  string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $successUrl, string $failUrl, string $idfm){
+                                                  string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $successUrl, string $failUrl, string $idfm)
+    {
         $data = [
             'order_id' => $orderId,
             'recurring_token' => $cardToken,
@@ -312,7 +313,7 @@ class SolidgateClient extends PurchasesClient
             'order_metadata' => [
                 'idfm' => $idfm,
             ],
-            'product_id' =>$productCode,
+            'product_id' => $productCode,
             'customer_email' => $email,
             'ip_address' => $ipAddress,
             'success_url' => $successUrl,
@@ -327,22 +328,25 @@ class SolidgateClient extends PurchasesClient
         );
     }
 
-    public function retriveProducts($limit, $offset) {
-        $data = ['pagination[limit]' => $limit, 'pagination[offset]' => $offset, 'filter[status]'=> 'active'];
+    public function retriveProducts($limit, $offset)
+    {
+        $data = ['pagination[limit]' => $limit, 'pagination[offset]' => $offset, 'filter[status]' => 'active'];
         return json_decode(
             $this->provider->retriveProducts($data),
             true
         );
     }
 
-    public function retriveProductPrice($productId){
+    public function retriveProductPrice($productId)
+    {
         return json_decode(
             $this->provider->retriveProductPrice($productId),
             true
         );
     }
 
-    public function applePay($productId, $orderId, $idfm, $customerId, $customerEmail, $ipAddress, $platform, $signature, $data, $header, $version) {
+    public function applePay($productId, $orderId, $idfm, $customerId, $customerEmail, $ipAddress, $platform, $signature, $data, $header, $version)
+    {
         $data = [
             'product_id' => $productId,
             'order_id' => $orderId,
@@ -364,13 +368,15 @@ class SolidgateClient extends PurchasesClient
             true
         );
     }
-    public function getSubscriptionReport($dateFrom, $dateTo, $cursor = null) {
+
+    public function getSubscriptionReport($dateFrom, $dateTo, $cursor = null)
+    {
 
         $data = [
             'date_from' => $dateFrom,
             'date_to' => $dateTo,
         ];
-        if($cursor) {
+        if ($cursor) {
             $data['next_page_iterator'] = $cursor;
         }
         return json_decode(
@@ -379,13 +385,14 @@ class SolidgateClient extends PurchasesClient
         );
     }
 
-    public function getCardOrderReport($dateFrom, $dateTo, $cursor = null) {
+    public function getCardOrderReport($dateFrom, $dateTo, $cursor = null)
+    {
 
         $data = [
             'date_from' => $dateFrom,
             'date_to' => $dateTo,
         ];
-        if($cursor) {
+        if ($cursor) {
             $data['next_page_iterator'] = $cursor;
         }
         return json_decode(
@@ -394,20 +401,23 @@ class SolidgateClient extends PurchasesClient
         );
     }
 
-    public function customRequestToPayApi(string $method, array $params=[]){
+    public function customRequestToPayApi(string $method, array $params = [])
+    {
         return json_decode(
             $this->provider->sendRequestToPayApi($method, $params),
-        true);
+            true);
     }
 
-    public function customRequestToGateApi(string $method, array $params=[]){
+    public function customRequestToGateApi(string $method, array $params = [])
+    {
         return json_decode(
             $this->provider->sendRequestToGateApi($method, $params),
             true);
     }
 
     public function initAlternativePayment(string $paymentMethod, string $orderId, string $productId,
-                                           string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $idfm){
+                                           string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $idfm)
+    {
         $params = [
             'payment_method' => $paymentMethod,
             'product_id' => $productId,
@@ -424,6 +434,29 @@ class SolidgateClient extends PurchasesClient
         return json_decode(
             $this->provider->initAlternativePayment($params),
             true);
+    }
 
+    public function initAlternativeOneTimePayment(string $paymentMethod, string $orderId, string $productId, int $amount, string $currency,
+                                                  string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $idfm)
+    {
+        $params = [
+            'payment_method' => $paymentMethod,
+            'amount' => $amount,
+            'currency' => $currency,
+            'order_id' => $orderId,
+            'order_description' => $orderDescription,
+            'customer_account_id' => $customerAccountId,
+            'customer_email' => $email,
+            'ip_address' => $ipAddress,
+            'platform' => 'WEB',
+            'order_metadata' => [
+                'idfm' => $idfm,
+                'one_time_product_code' => $productId
+            ],
+        ];
+        return json_decode(
+            $this->provider->initAlternativePayment($params),
+            true);
     }
 }
+
