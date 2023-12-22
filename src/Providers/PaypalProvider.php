@@ -115,7 +115,7 @@ class PaypalProvider
     {
         return $this->makeRequest(
             'GET',
-            sprintf(self::URL_CHECK_OREDER_STATUS, $orderId),
+            sprintf(self::URL_CHECK_OREDER_STATUS, $orderId)
         );
     }
 
