@@ -239,7 +239,7 @@ class SolidgateClient extends PurchasesClient
             'settle_interval' => 144,
             'order_metadata' => [
                 'idfm' => $idfm,
-                'one_time_product_code' => $productCode,
+                'one_time_product_code' => $productCode
             ],
             'customer_email' => $email,
             'ip_address' => $ipAddress,
@@ -266,7 +266,7 @@ class SolidgateClient extends PurchasesClient
             'order_description' => $orderDescription,
             'order_metadata' => [
                 'idfm' => $idfm,
-                'one_time_product_code' => $productCode,
+                'one_time_product_code' => $productCode
             ],
             'customer_email' => $email,
             'ip_address' => $ipAddress,
@@ -313,6 +313,7 @@ class SolidgateClient extends PurchasesClient
             'order_description' => $orderDescription,
             'order_metadata' => [
                 'idfm' => $idfm,
+                'product_id' => $productCode
             ],
             'product_id' => $productCode,
             'customer_email' => $email,
@@ -361,7 +362,8 @@ class SolidgateClient extends PurchasesClient
             'header' => $header,
             'version' => $version,
             'order_metadata' => [
-                'idfm' => $idfm
+                'idfm' => $idfm,
+                'product_id' => $productId
             ],
         ];
         return json_decode(
@@ -429,7 +431,8 @@ class SolidgateClient extends PurchasesClient
             'ip_address' => $ipAddress,
             'platform' => 'WEB',
             'order_metadata' => [
-                'idfm' => $idfm
+                'idfm' => $idfm,
+                'product_id' => $productId
             ],
         ];
         return json_decode(
