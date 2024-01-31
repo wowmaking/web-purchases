@@ -18,10 +18,12 @@ class RecurlyClient extends PurchasesClient
      */
     protected $publicKey;
 
-    public function __construct(string $publicKey, string $secretKey)
+    protected $region;
+
+    public function __construct(string $publicKey, string $secretKey, string $region = null)
     {
         $this->publicKey = $publicKey;
-
+        $this->region = $region;
         parent::__construct($secretKey);
     }
 
@@ -32,7 +34,11 @@ class RecurlyClient extends PurchasesClient
 
     public function loadProvider()
     {
-        $provider = new Provider($this->getSecretKey());
+        if($this->region) {
+            $provider = new Provider($this->getSecretKey(), null,['region'=> $this->region]);
+        } else {
+            $provider = new Provider($this->getSecretKey());
+        }
 
         $this->setProvider($provider);
     }
