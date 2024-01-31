@@ -226,7 +226,7 @@ class SolidgateClient extends PurchasesClient
     }
 
     public function oneTimePayment(string $orderId, int $amount, string $currency, string $productCode, string $cardToken,
-                                   string $orderDescription, string $email, string $ipAddress, string $successUrl, string $failUrl, string $idfm, bool $force3ds = false)
+                                   string $orderDescription, string $email, string $ipAddress, ?string $successUrl, ?string $failUrl, string $idfm, bool $force3ds = false)
     {
         $data = [
             'order_id' => $orderId,
@@ -244,11 +244,18 @@ class SolidgateClient extends PurchasesClient
             'customer_email' => $email,
             'ip_address' => $ipAddress,
             'payment_type' => '1-click',
-            'success_url' => $successUrl,
-            'fail_url' => $failUrl,
             'platform' => 'WEB',
             'force3ds' => $force3ds
         ];
+
+        if ($failUrl) {
+            $data['fail_url'] = $failUrl;
+        }
+
+        if ($successUrl) {
+            $data['success_url'] = $successUrl;
+        }
+
         return json_decode(
             $this->provider->recurring($data),
             true
