@@ -217,6 +217,11 @@ class SolidgateClient extends PurchasesClient
         );
     }
 
+    public function checkOrderStatusByApplePay(string $oredrId)
+    {
+        return json_decode($this->provider->applePay(['order_id' => $oredrId]), true);
+    }
+
     public function checkOrderStatusAlternativePayment(string $orderId)
     {
         return json_decode(
@@ -373,6 +378,46 @@ class SolidgateClient extends PurchasesClient
                 'product_id' => $productId
             ],
         ];
+        return json_decode(
+            $this->provider->applePay($data),
+            true
+        );
+    }
+
+    public function applePayOneTimePayment(
+        int $amount,
+        string $curency,
+        string $orderId,
+        string $idfm,
+        string $productCode,
+        string $customerEmail,
+        string $ipAddress,
+        string $platform,
+        string $data,
+        string $header,
+        string $signature,
+        string $version
+    )
+    {
+        $data = [
+            'amount' => $amount,
+            'curency' => $curency,
+            'order_id' => $orderId,
+            'order_description' => $idfm,
+            'order_items' => $productCode,
+            'customer_email' => $customerEmail,
+            'ip_address' => $ipAddress,
+            'platform' => $platform,
+            'data' => $data,
+            'header' => $header,
+            'signature' => $signature,
+            'version' => $version,
+            'order_metadata' => [
+                'idfm' => $idfm,
+                'one_time_product_code' => $productCode
+            ],
+        ];
+
         return json_decode(
             $this->provider->applePay($data),
             true
