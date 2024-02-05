@@ -217,11 +217,6 @@ class SolidgateClient extends PurchasesClient
         );
     }
 
-    public function checkOrderStatusByApplePay(string $oredrId)
-    {
-        return json_decode($this->provider->applePay(['order_id' => $oredrId]), true);
-    }
-
     public function checkOrderStatusAlternativePayment(string $orderId)
     {
         return json_decode(
