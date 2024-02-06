@@ -381,7 +381,7 @@ class SolidgateClient extends PurchasesClient
 
     public function applePayOneTimePayment(
         int $amount,
-        string $curency,
+        string $currency,
         string $orderId,
         string $idfm,
         string $productCode,
@@ -389,14 +389,14 @@ class SolidgateClient extends PurchasesClient
         string $ipAddress,
         string $platform,
         string $data,
-        string $header,
+        $header,
         string $signature,
         string $version
     )
     {
         $data = [
             'amount' => $amount,
-            'curency' => $curency,
+            'currency' => $currency,
             'order_id' => $orderId,
             'order_description' => $idfm,
             'order_items' => $productCode,
