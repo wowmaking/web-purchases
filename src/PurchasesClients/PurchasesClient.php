@@ -151,8 +151,10 @@ abstract class PurchasesClient implements PurchasesClientInterface
 
         $tracks = [];
 
-        if ($this->getSubtruck()) {
-            $tracks['subtruck'] = $this->getSubtruck()->track($subscription, $trackParams);
+        if ($subscription->getProvider() !== 'solidgate') {
+            if ($this->getSubtruck()) {
+                $tracks['subtruck'] = $this->getSubtruck()->track($subscription, $trackParams);
+            }
         }
 
         if ($this->getFbPixel()) {
