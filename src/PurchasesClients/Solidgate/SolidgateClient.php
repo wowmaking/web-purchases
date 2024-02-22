@@ -10,6 +10,7 @@ use Wowmaking\WebPurchases\Providers\SolidgateProvider;
 use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
 use Wowmaking\WebPurchases\PurchasesClients\WithoutCustomerSupportTrait;
 use Wowmaking\WebPurchases\Resources\Entities\Price;
+use Wowmaking\WebPurchases\Resources\Entities\PriceCurrency;
 use Wowmaking\WebPurchases\Resources\Entities\Subscription;
 use yii\db\Exception;
 
@@ -75,11 +76,17 @@ class SolidgateClient extends PurchasesClient
                 if ($item['default']) {
                     $priceData = $item;
                 } else {
-                    $trialPrice = 0;
-                    if(isset($item['trial_price'])) {
-                        $trialPrice = $item['trial_price'] / 100;
+                    if ($item['status'] == 'active') {
+                        $priceCurrency = new PriceCurrency();
+                        $priceCurrency->setId($item['id']);
+                        $priceCurrency->setAmount($item['product_price'] / 100);
+                        $priceCurrency->setCountry($item['country']);
+                        $priceCurrency->setCurrency($item['currency']);
+                        if (isset($product['trial']) && isset($product['trial']['billing_period'])) {
+                            $priceCurrency->setTrialPriceAmount($item['trial_price'] / 100);
+                        }
+                        $price->addCurrency($priceCurrency);
                     }
-                    $price->addCurrency($item['product_price'] / 100, $trialPrice, $item['currency']);
                 }
             }
 
@@ -390,7 +397,7 @@ class SolidgateClient extends PurchasesClient
     }
 
     public function applePayOneTimePayment(
-        int $amount,
+        int    $amount,
         string $currency,
         string $orderId,
         string $idfm,
@@ -399,7 +406,7 @@ class SolidgateClient extends PurchasesClient
         string $ipAddress,
         string $platform,
         string $data,
-        $header,
+               $header,
         string $signature,
         string $version
     )
