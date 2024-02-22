@@ -64,18 +64,28 @@ class SolidgateClient extends PurchasesClient
         } while (true);
         foreach ($products as $product) {
             $priceData = $this->retriveProductPrice($product['id']);
-            foreach ($priceData['data'] as $item) {
-                if ($item['default']) {
-                    $priceData = $item;
-                }
-            }
 
             $price = new Price();
             $price->setId($product['id']);
-            $price->setAmount($priceData['product_price'] / 100);
-            $price->setCurrency($priceData['currency']);
             $price->setPeriod($product['billing_period']['value'], strtoupper($product['billing_period']['unit'][0]));
             $price->setProductName($product['name']);
+
+
+            foreach ($priceData['data'] as $item) {
+                if ($item['default']) {
+                    $priceData = $item;
+                } else {
+                    $trialPrice = 0;
+                    if(isset($item['trial_price'])) {
+                        $trialPrice = $item['trial_price'] / 100;
+                    }
+                    $price->addCurrency($item['product_price'] / 100, $trialPrice, $item['currency']);
+                }
+            }
+
+            $price->setAmount($priceData['product_price'] / 100);
+            $price->setCurrency($priceData['currency']);
+
 
             if (isset($product['trial']) && isset($product['trial']['billing_period'])) {
                 if ($product['trial']['billing_period']['unit'] == 'day') {

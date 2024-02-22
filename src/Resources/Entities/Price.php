@@ -24,6 +24,9 @@ class Price implements ResourcesEntityInterface
 
     public $product_name;
 
+
+    public $currencies =[];
+
     /**
      * @return mixed
      */
@@ -103,6 +106,20 @@ class Price implements ResourcesEntityInterface
     {
         $this->trial_price_amount = $trial_price_amount;
     }
+
+    public function addCurrency($amount, $trialPriceAmount, $currency) {
+        $this->currencies[$currency] = [
+            'amount'=>$amount,
+            'currency' => $currency,
+            'trial_price_amount' => $trialPriceAmount
+        ];
+    }
+
+    public function getCurrencies(){
+        return $this->currencies;
+    }
+
+
 
     /**
      * @param int $length
