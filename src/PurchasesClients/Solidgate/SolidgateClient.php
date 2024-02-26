@@ -483,7 +483,7 @@ class SolidgateClient extends PurchasesClient
     }
 
     public function initAlternativePayment(string $paymentMethod, string $orderId, string $productId,
-                                           string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $idfm)
+                                           string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $idfm, string $currency = null, string $geoCountry = null)
     {
         $params = [
             'payment_method' => $paymentMethod,
@@ -499,6 +499,15 @@ class SolidgateClient extends PurchasesClient
                 'product_id' => $productId
             ],
         ];
+
+        if($currency){
+            $params['currency'] = $currency;
+        }
+
+        if($geoCountry){
+            $params['billing_address'] = ['country'=> $geoCountry];
+        }
+
         return json_decode(
             $this->provider->initAlternativePayment($params),
             true);
