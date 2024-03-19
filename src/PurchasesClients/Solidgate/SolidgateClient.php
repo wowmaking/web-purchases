@@ -243,8 +243,20 @@ class SolidgateClient extends PurchasesClient
     }
 
     public function oneTimePayment(string $orderId, int $amount, string $currency, string $productCode, string $cardToken,
-                                   string $orderDescription, string $email, string $ipAddress, ?string $successUrl, ?string $failUrl, string $idfm, bool $force3ds = false)
+                                   string $orderDescription, string $email, string $ipAddress, ?string $successUrl, ?string $failUrl, string $deviceId, bool $force3ds = false, bool $isIdfm = true)
     {
+        $orderMetadata = [
+            'idfm' => $deviceId,
+            'one_time_product_code' => $productCode
+        ];
+
+        if (!$isIdfm) {
+            $orderMetadata = [
+                'idfv' => $deviceId,
+                'one_time_product_code' => $productCode
+            ];
+        }
+
         $data = [
             'order_id' => $orderId,
             'amount' => $amount,
@@ -254,10 +266,7 @@ class SolidgateClient extends PurchasesClient
             'order_items' => $productCode,
             'type' => 'auth',
             'settle_interval' => 144,
-            'order_metadata' => [
-                'idfm' => $idfm,
-                'one_time_product_code' => $productCode
-            ],
+            'order_metadata' => $orderMetadata,
             'customer_email' => $email,
             'ip_address' => $ipAddress,
             'payment_type' => '1-click',
@@ -280,18 +289,27 @@ class SolidgateClient extends PurchasesClient
     }
 
     public function oneTimePaymentAlternativePayment(string $orderId, int $amount, string $currency, string $productCode, string $token,
-                                                     string $orderDescription, string $email, string $ipAddress, string $idfm)
+                                                     string $orderDescription, string $email, string $ipAddress, string $deviceId, bool $isIdfm = true)
     {
+        $orderMetadata = [
+            'idfm' => $deviceId,
+            'one_time_product_code' => $productCode
+        ];
+
+        if (!$isIdfm) {
+            $orderMetadata = [
+                'idfv' => $deviceId,
+                'one_time_product_code' => $productCode
+            ];
+        }
+
         $data = [
             'order_id' => $orderId,
             'amount' => $amount,
             'currency' => $currency,
             'token' => $token,
             'order_description' => $orderDescription,
-            'order_metadata' => [
-                'idfm' => $idfm,
-                'one_time_product_code' => $productCode
-            ],
+            'order_metadata' => $orderMetadata,
             'customer_email' => $email,
             'ip_address' => $ipAddress,
             'platform' => 'WEB'
@@ -371,12 +389,24 @@ class SolidgateClient extends PurchasesClient
         );
     }
 
-    public function applePay($productId, $orderId, $idfm, $customerId, $customerEmail, $ipAddress, $platform, $signature, $data, $header, $version)
+    public function applePay($productId, $orderId, $deviceId, $customerId, $customerEmail, $ipAddress, $platform, $signature, $data, $header, $version, bool $isIdfm = true)
     {
+        $orderMetadata = [
+            'idfm' => $deviceId,
+            'product_id' => $productId
+        ];
+
+        if (!$isIdfm) {
+            $orderMetadata = [
+                'idfv' => $deviceId,
+                'product_id' => $productId
+            ];
+        }
+
         $data = [
             'product_id' => $productId,
             'order_id' => $orderId,
-            'order_description' => $idfm,
+            'order_description' => $deviceId,
             'customer_account_id' => $customerId,
             'customer_email' => $customerEmail,
             'ip_address' => $ipAddress,
@@ -385,10 +415,7 @@ class SolidgateClient extends PurchasesClient
             'signature' => $signature,
             'header' => $header,
             'version' => $version,
-            'order_metadata' => [
-                'idfm' => $idfm,
-                'product_id' => $productId
-            ],
+            'order_metadata' => $orderMetadata,
         ];
         return json_decode(
             $this->provider->applePay($data),
@@ -400,7 +427,7 @@ class SolidgateClient extends PurchasesClient
         int    $amount,
         string $currency,
         string $orderId,
-        string $idfm,
+        string $deviceId,
         string $productCode,
         string $customerEmail,
         string $ipAddress,
@@ -408,14 +435,27 @@ class SolidgateClient extends PurchasesClient
         string $data,
                $header,
         string $signature,
-        string $version
+        string $version,
+        bool $isIdfm = true
     )
     {
+        $orderMetadata = [
+            'idfm' => $deviceId,
+            'one_time_product_code' => $productCode
+        ];
+
+        if (!$isIdfm) {
+            $orderMetadata = [
+                'idfv' => $deviceId,
+                'one_time_product_code' => $productCode
+            ];
+        }
+
         $data = [
             'amount' => $amount,
             'currency' => $currency,
             'order_id' => $orderId,
-            'order_description' => $idfm,
+            'order_description' => $deviceId,
             'order_items' => $productCode,
             'customer_email' => $customerEmail,
             'ip_address' => $ipAddress,
@@ -424,10 +464,7 @@ class SolidgateClient extends PurchasesClient
             'header' => $header,
             'signature' => $signature,
             'version' => $version,
-            'order_metadata' => [
-                'idfm' => $idfm,
-                'one_time_product_code' => $productCode
-            ],
+            'order_metadata' => $orderMetadata,
         ];
 
         return json_decode(
@@ -483,8 +520,20 @@ class SolidgateClient extends PurchasesClient
     }
 
     public function initAlternativePayment(string $paymentMethod, string $orderId, string $productId,
-                                           string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $idfm, string $currency = null, string $geoCountry = null)
+                                           string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $deviceId, string $currency = null, string $geoCountry = null, bool $isIdfm = true)
     {
+        $orderMetadata = [
+            'idfm' => $deviceId,
+            'product_id' => $productId
+        ];
+
+        if (!$isIdfm) {
+            $orderMetadata = [
+                'idfv' => $deviceId,
+                'product_id' => $productId
+            ];
+        }
+
         $params = [
             'payment_method' => $paymentMethod,
             'product_id' => $productId,
@@ -494,10 +543,7 @@ class SolidgateClient extends PurchasesClient
             'customer_email' => $email,
             'ip_address' => $ipAddress,
             'platform' => 'WEB',
-            'order_metadata' => [
-                'idfm' => $idfm,
-                'product_id' => $productId
-            ],
+            'order_metadata' => $orderMetadata,
         ];
 
         if($currency){
@@ -514,8 +560,20 @@ class SolidgateClient extends PurchasesClient
     }
 
     public function initAlternativeOneTimePayment(string $paymentMethod, string $orderId, string $productId, int $amount, string $currency,
-                                                  string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $idfm)
+                                                  string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $deviceId, bool $isIdfm = true)
     {
+        $orderMetadata = [
+            'idfm' => $deviceId,
+            'one_time_product_code' => $productId
+        ];
+
+        if (!$isIdfm) {
+            $orderMetadata = [
+                'idfv' => $deviceId,
+                'one_time_product_code' => $productId
+            ];
+        }
+
         $params = [
             'payment_method' => $paymentMethod,
             'amount' => $amount,
@@ -526,10 +584,7 @@ class SolidgateClient extends PurchasesClient
             'customer_email' => $email,
             'ip_address' => $ipAddress,
             'platform' => 'WEB',
-            'order_metadata' => [
-                'idfm' => $idfm,
-                'one_time_product_code' => $productId
-            ],
+            'order_metadata' => $orderMetadata,
         ];
         return json_decode(
             $this->provider->initAlternativePayment($params),
