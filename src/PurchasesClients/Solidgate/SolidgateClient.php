@@ -389,7 +389,7 @@ class SolidgateClient extends PurchasesClient
         );
     }
 
-    public function applePay($productId, $orderId, $deviceId, $customerId, $customerEmail, $ipAddress, $platform, $signature, $data, $header, $version, bool $isIdfm = true)
+    public function applePay($productId, $orderId, $deviceId, $customerId, $customerEmail, $ipAddress, $platform, $signature, $data, $header, $version, bool $isIdfm = true, string $currency = null, string $geoCountry = null)
     {
         $orderMetadata = [
             'idfm' => $deviceId,
@@ -417,6 +417,15 @@ class SolidgateClient extends PurchasesClient
             'version' => $version,
             'order_metadata' => $orderMetadata,
         ];
+
+        if ($currency) {
+            $data['currency'] = $currency;
+        }
+
+        if ($geoCountry) {
+            $data['geo_country'] = $geoCountry;
+        }
+
         return json_decode(
             $this->provider->applePay($data),
             true
