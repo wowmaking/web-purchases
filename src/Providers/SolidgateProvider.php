@@ -295,6 +295,16 @@ class SolidgateProvider
     public function initAlternativePayment($attributes) {
         return $this->sendRequestToGateApi('init-payment', $attributes);
     }
-
+    
+    public function customRequest($baseUrl, $path, $params){
+        $request = $this->makeRequest($path, $params);
+        $client = new HttpClient(
+            [
+                'base_uri' => $baseUrl,
+                'verify' => true,
+            ]);
+        $response = $client->send($request);
+        return $response->getBody()->getContents();
+    }
 }
 
