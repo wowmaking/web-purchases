@@ -97,6 +97,12 @@ class SolidgateClient extends PurchasesClient
             if (isset($product['trial']) && isset($product['trial']['billing_period'])) {
                 if ($product['trial']['billing_period']['unit'] == 'day') {
                     $price->setTrialPeriodDays($product['trial']['billing_period']['value']);
+                } elseif($product['trial']['billing_period']['unit'] == 'week'){
+                    $price->setTrialPeriodDays($product['trial']['billing_period']['value'] * 7);
+                } elseif($product['trial']['billing_period']['unit'] == 'month'){
+                    $price->setTrialPeriodDays($product['trial']['billing_period']['value'] * 30);
+                } elseif($product['trial']['billing_period']['unit'] == 'year'){
+                    $price->setTrialPeriodDays($product['trial']['billing_period']['value'] * 365);
                 }
                 $price->setTrialPriceAmount($priceData['trial_price'] / 100);
             }
