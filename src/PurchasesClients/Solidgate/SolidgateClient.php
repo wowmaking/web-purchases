@@ -249,7 +249,7 @@ class SolidgateClient extends PurchasesClient
     }
 
     public function oneTimePayment(string $orderId, int $amount, string $currency, string $productCode, string $cardToken,
-                                   string $orderDescription, string $email, string $ipAddress, ?string $successUrl, ?string $failUrl, string $deviceId, bool $force3ds = false, bool $isIdfm = true)
+                                   string $orderDescription, string $email, string $ipAddress, ?string $successUrl, ?string $failUrl, string $deviceId, bool $force3ds = false, bool $isIdfm = true, bool $isRebill = false)
     {
         $orderMetadata = [
             'idfm' => $deviceId,
@@ -282,6 +282,10 @@ class SolidgateClient extends PurchasesClient
 
         if ($failUrl) {
             $data['fail_url'] = $failUrl;
+        }
+
+        if($isRebill){
+            $data['payment_type'] = 'rebill';
         }
 
         if ($successUrl) {
