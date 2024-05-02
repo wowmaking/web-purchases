@@ -250,7 +250,7 @@ class SolidgateClient extends PurchasesClient
 
     public function oneTimePayment(string $orderId, int $amount, string $currency, string $productCode, string $cardToken,
                                    string $orderDescription, string $email, string $ipAddress, ?string $successUrl, ?string $failUrl, string $deviceId, bool $force3ds = false, bool $isIdfm = true, bool $isRebill = false,
-                                   array $paramsMetadata = [])
+                                   array $params = [])
     {
         $orderMetadata = [
             'idfm' => $deviceId,
