@@ -307,7 +307,7 @@ class SolidgateClient extends PurchasesClient
 
     public function oneTimePaymentAlternativePayment(string $orderId, int $amount, string $currency, string $productCode, string $token,
                                                      string $orderDescription, string $email, string $ipAddress, string $deviceId, bool $isIdfm = true,
-                                                     array $paramMetadata = [])
+                                                     array $params = [])
     {
         $orderMetadata = [
             'idfm' => $deviceId,
@@ -321,8 +321,8 @@ class SolidgateClient extends PurchasesClient
             ];
         }
 
-        if ($paramMetadata['solid_metadata'] ?? []) {
-            $solidMetadata = $paramMetadata['solid_metadata'];
+        if ($params['solid_metadata'] ?? []) {
+            $solidMetadata = $params['solid_metadata'];
             $solidMetadata['one_time_product_code'] = $productCode;
             $orderMetadata = $solidMetadata;
         }
@@ -413,7 +413,7 @@ class SolidgateClient extends PurchasesClient
         );
     }
 
-    public function applePay($productId, $orderId, $deviceId, $customerId, $customerEmail, $ipAddress, $platform, $signature, $data, $header, $version, bool $isIdfm = true, string $currency = null, string $geoCountry = null, array $paramMetadata = [])
+    public function applePay($productId, $orderId, $deviceId, $customerId, $customerEmail, $ipAddress, $platform, $signature, $data, $header, $version, bool $isIdfm = true, string $currency = null, string $geoCountry = null, array $params = [])
     {
         $orderMetadata = [
             'idfm' => $deviceId,
@@ -427,8 +427,8 @@ class SolidgateClient extends PurchasesClient
             ];
         }
 
-        if ($paramMetadata['solid_metadata'] ?? []) {
-            $solidMetadata = $paramMetadata['solid_metadata'];
+        if ($params['solid_metadata'] ?? []) {
+            $solidMetadata = $params['solid_metadata'];
             $solidMetadata['product_id'] = $productId;
             $orderMetadata = $solidMetadata;
         }
@@ -476,7 +476,7 @@ class SolidgateClient extends PurchasesClient
         string $signature,
         string $version,
         bool   $isIdfm = true,
-        array $paramMetadata = []
+        array $params = []
     )
     {
         $orderMetadata = [
@@ -491,8 +491,8 @@ class SolidgateClient extends PurchasesClient
             ];
         }
 
-        if ($paramMetadata['solid_metadata'] ?? []) {
-            $solidMetadata = $paramMetadata['solid_metadata'];
+        if ($params['solid_metadata'] ?? []) {
+            $solidMetadata = $params['solid_metadata'];
             $solidMetadata['one_time_product_code'] = $productCode;
             $orderMetadata = $solidMetadata;
         }
@@ -567,7 +567,7 @@ class SolidgateClient extends PurchasesClient
 
     public function initAlternativePayment(string $paymentMethod, string $orderId, string $productId,
                                            string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $deviceId, string $currency = null, string $geoCountry = null, bool $isIdfm = true,
-                                           array $paramMetadata = [])
+                                           array $params = [])
     {
         $orderMetadata = [
             'idfm' => $deviceId,
@@ -581,13 +581,13 @@ class SolidgateClient extends PurchasesClient
             ];
         }
 
-        if ($paramMetadata['solid_metadata'] ?? []) {
-            $solidMetadata = $paramMetadata['solid_metadata'];
+        if ($params['solid_metadata'] ?? []) {
+            $solidMetadata = $params['solid_metadata'];
             $solidMetadata['product_id'] = $productId;
             $orderMetadata = $solidMetadata;
         }
 
-        $params = [
+        $data = [
             'payment_method' => $paymentMethod,
             'product_id' => $productId,
             'order_id' => $orderId,
@@ -600,21 +600,21 @@ class SolidgateClient extends PurchasesClient
         ];
 
         if($currency){
-            $params['currency'] = $currency;
+            $data['currency'] = $currency;
         }
 
         if($geoCountry){
-            $params['billing_address'] = ['country'=> $geoCountry];
+            $data['billing_address'] = ['country'=> $geoCountry];
         }
 
         return json_decode(
-            $this->provider->initAlternativePayment($params),
+            $this->provider->initAlternativePayment($data),
             true);
     }
 
     public function initAlternativeOneTimePayment(string $paymentMethod, string $orderId, string $productId, int $amount, string $currency,
                                                   string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $deviceId, bool $isIdfm = true,
-                                                  array $paramMetadata = [])
+                                                  array $params = [])
     {
         $orderMetadata = [
             'idfm' => $deviceId,
@@ -628,13 +628,13 @@ class SolidgateClient extends PurchasesClient
             ];
         }
 
-        if ($paramMetadata['solid_metadata'] ?? []) {
-            $solidMetadata = $paramMetadata['solid_metadata'];
+        if ($params['solid_metadata'] ?? []) {
+            $solidMetadata = $params['solid_metadata'];
             $solidMetadata['one_time_product_code'] = $productId;
             $orderMetadata = $solidMetadata;
         }
 
-        $params = [
+        $data = [
             'payment_method' => $paymentMethod,
             'amount' => $amount,
             'currency' => $currency,
@@ -647,8 +647,7 @@ class SolidgateClient extends PurchasesClient
             'order_metadata' => $orderMetadata,
         ];
         return json_decode(
-            $this->provider->initAlternativePayment($params),
+            $this->provider->initAlternativePayment($data),
             true);
     }
 }
-
