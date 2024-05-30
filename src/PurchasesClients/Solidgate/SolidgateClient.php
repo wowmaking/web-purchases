@@ -55,6 +55,8 @@ class SolidgateClient extends PurchasesClient
         $limit = 100;
         $offset = 0;
         $products = [];
+        $attributesForProductPrice = ['limit' => 100, 'offset' => 0];
+
         do {
             $partProducts = $this->retriveProducts($limit, $offset);
             $products = array_merge($products, $partProducts['data']);
@@ -64,7 +66,7 @@ class SolidgateClient extends PurchasesClient
             $offset += $limit;
         } while (true);
         foreach ($products as $product) {
-            $priceData = $this->retriveProductPrice($product['id']);
+            $priceData = $this->retriveProductPrice($product['id'], $attributesForProductPrice);
 
             $price = new Price();
             $price->setId($product['id']);
@@ -405,10 +407,16 @@ class SolidgateClient extends PurchasesClient
         );
     }
 
-    public function retriveProductPrice($productId)
+    public function retriveProductPrice($productId, array $attributes)
     {
+        $data = [];
+
+        if (isset($attributes['limit']) && isset($attributes['offset'])) {
+            $data = ['pagination[limit]' => $attributes['limit'], 'pagination[offset]' => $attributes['offset']];
+        }
+
         return json_decode(
-            $this->provider->retriveProductPrice($productId),
+            $this->provider->retriveProductPrice($productId, $data),
             true
         );
     }
