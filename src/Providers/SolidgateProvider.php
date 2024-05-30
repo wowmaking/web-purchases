@@ -276,8 +276,8 @@ class SolidgateProvider
         return $this->sendGetRequest('products', $attributes);
     }
 
-    public function retriveProductPrice($productId) {
-        return $this->sendGetRequest("products/$productId/prices",[]);
+    public function retriveProductPrice($productId, array $attributes = []) {
+        return $this->sendGetRequest("products/$productId/prices", $attributes);
     }
 
     public function applePay($attributes){
