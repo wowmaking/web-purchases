@@ -607,12 +607,16 @@ class SolidgateClient extends PurchasesClient
             'order_metadata' => $orderMetadata,
         ];
 
-        if($currency){
+        if($currency) {
             $data['currency'] = $currency;
         }
 
         if($geoCountry){
             $data['billing_address'] = ['country'=> $geoCountry];
+        }
+
+        if(isset($params['mercadopagoParams'])){
+            $data = array_merge($data, $params['mercadopagoParams']);
         }
 
         return json_decode(
@@ -654,6 +658,13 @@ class SolidgateClient extends PurchasesClient
             'platform' => 'WEB',
             'order_metadata' => $orderMetadata,
         ];
+
+        if($params['mercadopagoParams']) {
+            $data['billing_address'] = ['country'=> $params['mercadopagoParams']['country']];
+            unset($params['mercadopagoParams']['country']);
+            $data = array_merge($data, $params['mercadopagoParams']);
+        }
+
         return json_decode(
             $this->provider->initAlternativePayment($data),
             true);
