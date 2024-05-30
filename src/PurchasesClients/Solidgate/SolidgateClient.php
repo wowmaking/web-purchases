@@ -309,7 +309,7 @@ class SolidgateClient extends PurchasesClient
 
     public function oneTimePaymentAlternativePayment(string $orderId, int $amount, string $currency, string $productCode, string $token,
                                                      string $orderDescription, string $email, string $ipAddress, string $deviceId, bool $isIdfm = true,
-                                                     array $params = [])
+                                                     array $params = [], $paymentType = 'paypal-vault')
     {
         $orderMetadata = [
             'idfm' => $deviceId,
@@ -330,6 +330,7 @@ class SolidgateClient extends PurchasesClient
         }
 
         $data = [
+            'payment_type' => $paymentType,
             'order_id' => $orderId,
             'amount' => $amount,
             'currency' => $currency,
