@@ -659,7 +659,7 @@ class SolidgateClient extends PurchasesClient
             'order_metadata' => $orderMetadata,
         ];
 
-        if($params['mercadopagoParams']) {
+        if(isset($params['mercadopagoParams'])) {
             $data['billing_address'] = ['country'=> $params['mercadopagoParams']['country']];
             unset($params['mercadopagoParams']['country']);
             $data = array_merge($data, $params['mercadopagoParams']);
