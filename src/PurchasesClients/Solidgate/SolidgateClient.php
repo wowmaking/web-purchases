@@ -471,6 +471,112 @@ class SolidgateClient extends PurchasesClient
         );
     }
 
+    public function googlePay($productId, $orderId, $deviceId, $customerId, $customerEmail, $ipAddress, $platform, $signature, $data, $header, $version, bool $isIdfm = true, string $currency = null, string $geoCountry = null, array $params = [])
+    {
+        $orderMetadata = [
+            'idfm' => $deviceId,
+            'product_id' => $productId
+        ];
+
+        if (!$isIdfm) {
+            $orderMetadata = [
+                'idfv' => $deviceId,
+                'product_id' => $productId
+            ];
+        }
+
+        if ($params['solid_metadata'] ?? []) {
+            $solidMetadata = $params['solid_metadata'];
+            $solidMetadata['product_id'] = $productId;
+            $orderMetadata = $solidMetadata;
+        }
+
+        $data = [
+            'product_id' => $productId,
+            'order_id' => $orderId,
+            'order_description' => $deviceId,
+            'customer_account_id' => $customerId,
+            'customer_email' => $customerEmail,
+            'ip_address' => $ipAddress,
+            'platform' => $platform,
+            'data' => $data,
+            'signature' => $signature,
+            'header' => $header,
+            'version' => $version,
+            'order_metadata' => $orderMetadata,
+        ];
+
+        if ($currency) {
+            $data['currency'] = $currency;
+        }
+
+        if ($geoCountry) {
+            $data['geo_country'] = $geoCountry;
+        }
+
+        return json_decode(
+            $this->provider->googlePay($data),
+            true
+        );
+    }
+
+    public function googlePayOneTimePayment(
+        int    $amount,
+        string $currency,
+        string $orderId,
+        string $deviceId,
+        string $productCode,
+        string $customerEmail,
+        string $ipAddress,
+        string $platform,
+        string $data,
+               $header,
+        string $signature,
+        string $version,
+        bool   $isIdfm = true,
+        array $params = []
+    )
+    {
+        $orderMetadata = [
+            'idfm' => $deviceId,
+            'one_time_product_code' => $productCode
+        ];
+
+        if (!$isIdfm) {
+            $orderMetadata = [
+                'idfv' => $deviceId,
+                'one_time_product_code' => $productCode
+            ];
+        }
+
+        if ($params['solid_metadata'] ?? []) {
+            $solidMetadata = $params['solid_metadata'];
+            $solidMetadata['one_time_product_code'] = $productCode;
+            $orderMetadata = $solidMetadata;
+        }
+
+        $data = [
+            'amount' => $amount,
+            'currency' => $currency,
+            'order_id' => $orderId,
+            'order_description' => $deviceId,
+            'order_items' => $productCode,
+            'customer_email' => $customerEmail,
+            'ip_address' => $ipAddress,
+            'platform' => $platform,
+            'data' => $data,
+            'header' => $header,
+            'signature' => $signature,
+            'version' => $version,
+            'order_metadata' => $orderMetadata,
+        ];
+
+        return json_decode(
+            $this->provider->googlePay($data),
+            true
+        );
+    }
+
     public function applePayOneTimePayment(
         int    $amount,
         string $currency,
