@@ -528,6 +528,61 @@ class SolidgateClient extends PurchasesClient
         );
     }
 
+    public function googlePayOneTimePayment(
+        int    $amount,
+        string $currency,
+        string $orderId,
+        string $deviceId,
+        string $productCode,
+        string $customerEmail,
+        string $ipAddress,
+        string $platform,
+        string $signedMessage,
+        string $signature,
+        string $protocolVersion,
+        bool   $isIdfm = true,
+        array $params = []
+    )
+    {
+        $orderMetadata = [
+            'idfm' => $deviceId,
+            'one_time_product_code' => $productCode
+        ];
+
+        if (!$isIdfm) {
+            $orderMetadata = [
+                'idfv' => $deviceId,
+                'one_time_product_code' => $productCode
+            ];
+        }
+
+        if ($params['solid_metadata'] ?? []) {
+            $solidMetadata = $params['solid_metadata'];
+            $solidMetadata['one_time_product_code'] = $productCode;
+            $orderMetadata = $solidMetadata;
+        }
+
+        $data = [
+            'amount' => $amount,
+            'currency' => $currency,
+            'order_id' => $orderId,
+            'order_description' => $deviceId,
+            'order_items' => $productCode,
+            'customer_email' => $customerEmail,
+            'ip_address' => $ipAddress,
+            'platform' => $platform,
+            'signedMessage' => $signedMessage,
+            'signature' => $signature,
+            'protocolVersion' => $protocolVersion,
+            'order_metadata' => $orderMetadata,
+        ];
+
+        return json_decode(
+            $this->provider->googlePay($data),
+            true
+        );
+    }
+
     public function getSubscriptionReport($dateFrom, $dateTo, $cursor = null)
     {
 

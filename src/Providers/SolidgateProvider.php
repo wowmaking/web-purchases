@@ -284,6 +284,10 @@ class SolidgateProvider
         return $this->sendRequestToPayApi("apple-pay", $attributes);
     }
 
+    public function googlePay($attributes){
+        return $this->sendRequestToPayApi("google-pay", $attributes);
+    }
+
     public function subscriptionReport($attributes) {
         return $this->sendRequestToReportApi('subscriptions', $attributes);
     }
