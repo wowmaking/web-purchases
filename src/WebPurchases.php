@@ -16,14 +16,13 @@ class WebPurchases
     /**
      * @param array $clientParams
      * @param array $subtruckParams
-     * @param array $fbPixelParams
      * @return static
      * @throws \Exception
      */
-    public static function service(array $clientParams, array $subtruckParams = [], array $fbPixelParams = []): self
+    public static function service(array $clientParams, array $subtruckParams = []): self
     {
         if (!self::$service instanceof self) {
-            self::$service = new self($clientParams, $subtruckParams, $fbPixelParams);
+            self::$service = new self($clientParams, $subtruckParams);
         }
 
         return self::$service;
@@ -33,12 +32,11 @@ class WebPurchases
      * WebPurchases constructor.
      * @param array $clientParams
      * @param array $subtruckParams
-     * @param array $fbPixelParams
      * @throws \Exception
      */
-    protected function __construct(array $clientParams, array $subtruckParams = [], array $fbPixelParams = [])
+    protected function __construct(array $clientParams, array $subtruckParams = [])
     {
-        $this->setPurchasesClient((new PurchasesClientFactory())->create($clientParams, $subtruckParams, $fbPixelParams));
+        $this->setPurchasesClient((new PurchasesClientFactory())->create($clientParams, $subtruckParams));
     }
 
     /**

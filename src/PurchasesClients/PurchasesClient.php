@@ -7,7 +7,6 @@ use Wowmaking\WebPurchases\Dto\TrackDataDto;
 use Wowmaking\WebPurchases\Factories\TrackParametersProviderFactory;
 use Wowmaking\WebPurchases\Interfaces\PurchasesClientInterface;
 use Wowmaking\WebPurchases\Resources\Entities\Subscription;
-use Wowmaking\WebPurchases\Services\FbPixel\FbPixelService;
 use Wowmaking\WebPurchases\Services\Subtruck\SubtruckService;
 
 abstract class PurchasesClient implements PurchasesClientInterface
@@ -30,9 +29,6 @@ abstract class PurchasesClient implements PurchasesClientInterface
 
     /** @var SubtruckService|null */
     private $subtruck;
-
-    /** @var FbPixelService|null */
-    private $fbPixel;
 
     abstract protected function getPurchaseClientType(): string;
 
@@ -119,22 +115,6 @@ abstract class PurchasesClient implements PurchasesClientInterface
         $this->subtruck = $subtruck;
     }
 
-    /**
-     * @return FbPixelService|null
-     */
-    public function getFbPixel(): ?FbPixelService
-    {
-        return $this->fbPixel;
-    }
-
-    /**
-     * @param FbPixelService|null $fbPixel
-     */
-    public function setFbPixel(?FbPixelService $fbPixel): void
-    {
-        $this->fbPixel = $fbPixel;
-    }
-
     public function createSubscription(array $data, TrackDataDto $trackDataDto = null): Subscription
     {
         $response = $this->subscriptionCreationProcess($data);
@@ -155,10 +135,6 @@ abstract class PurchasesClient implements PurchasesClientInterface
             if ($this->getSubtruck()) {
                 $tracks['subtruck'] = $this->getSubtruck()->track($subscription, $trackParams);
             }
-        }
-
-        if ($this->getFbPixel()) {
-            $tracks['fbPixel'] = $this->getFbPixel()->track($subscription);
         }
 
         $subscription->setTracks($tracks);

@@ -9,17 +9,15 @@ use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
 use Wowmaking\WebPurchases\PurchasesClients\Recurly\RecurlyClient;
 use Wowmaking\WebPurchases\PurchasesClients\Solidgate\SolidgateClient;
 use Wowmaking\WebPurchases\PurchasesClients\Stripe\StripeClient;
-use Wowmaking\WebPurchases\Services\FbPixel\FbPixelService;
 use Wowmaking\WebPurchases\Services\Subtruck\SubtruckService;
 
 class PurchasesClientFactory
 {
-    public function create(array $clientParams, array $subtruckParams = [], array $fbPixelParams = [])
+    public function create(array $clientParams, array $subtruckParams = [])
     {
         $purchasesClient = $this->resolvePurchasesClient($clientParams);
 
         $purchasesClient->setSubtruck($this->resolveSubtruck($subtruckParams));
-        $purchasesClient->setFbPixel($this->resolveFbPixel($fbPixelParams));
 
         return $purchasesClient;
     }
@@ -93,32 +91,5 @@ class PurchasesClientFactory
         }
 
         return SubtruckService::service($config['token'], $config['idfm']);
-    }
-
-    private function resolveFbPixel(array $config): ?FbPixelService
-    {
-        if (
-            !isset(
-                $config['token'],
-                $config['pixel_id'],
-                $config['domain'],
-                $config['ip'],
-                $config['user_agent'],
-                $config['fbc'],
-                $config['fbp']
-            )
-        ) {
-            return null;
-        }
-
-        return FbPixelService::service(
-            $config['token'],
-            $config['pixel_id'],
-            $config['domain'],
-            $config['ip'],
-            $config['user_agent'],
-            $config['fbc'],
-            $config['fbp']
-        );
     }
 }
