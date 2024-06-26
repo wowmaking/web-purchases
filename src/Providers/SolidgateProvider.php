@@ -310,5 +310,9 @@ class SolidgateProvider
         $response = $client->send($request);
         return $response->getBody()->getContents();
     }
+
+    public function paypalDisputesReport($attributes) {
+        return $this->sendRequestToReportApi('apm-orders/paypal-disputes', $attributes);
+    }
 }
 
