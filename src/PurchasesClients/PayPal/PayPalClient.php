@@ -240,4 +240,13 @@ class PayPalClient extends PurchasesClient
     public function getTransactions($startDate, $endDate, $page) {
         return $this->getProvider()->getTransactions($startDate, $endDate, $page);
     }
+
+    public function getDisputes($params){
+        return $this->getProvider()->getDistutes($params);
+    }
+
+    public function getDisputeDetails($id) {
+        return $this->getProvider()->getDistuteDetails($id);
+    }
+
 }

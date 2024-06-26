@@ -17,6 +17,11 @@ class PaypalProvider
     private const URL_TPL_LIST_PLANS = '/v1/billing/plans?page_size=20';
     private const URL_TPL_GET_PLAN = '/v1/billing/plans/%s';
 
+    private const URL_GET_DISPUTE = '/v1/customer/disputes';
+    private const URL_GET_DISPUTE_DETAILS = '/v1/customer/disputes/%s';
+    private const URL_GET_INVOICE_DETAILS = '/v2/invoicing/invoices/%s';
+
+
     /**
      * @var string
      */
@@ -65,6 +70,17 @@ class PaypalProvider
     public function getPlan(string $planId): array
     {
         return $this->makeRequest('GET', sprintf(self::URL_TPL_GET_PLAN, $planId));
+    }
+
+
+    public function getDistutes($params): array
+    {
+        return $this->makeRequest('GET', self::URL_GET_DISPUTE."?".http_build_query($params));
+    }
+
+    public function getDistuteDetails($id): array
+    {
+        return $this->makeRequest('GET', sprintf(self::URL_GET_DISPUTE_DETAILS, $id));
     }
 
     private function collectAllPlans(string $currentLink): array
