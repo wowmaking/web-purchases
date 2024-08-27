@@ -256,6 +256,10 @@ class SolidgateProvider
         return $this->sendRequestToPayApi('recurring', $attributes);
     }
 
+    public function alternativeRecurring($attributes){
+        return $this->sendRequestToGateApi('recurring', $attributes);
+    }
+
     public function recurringAlternativePayment($attributes){
         return $this->sendRequestToGateApi('recurring', $attributes);
     }
@@ -299,7 +303,7 @@ class SolidgateProvider
     public function initAlternativePayment($attributes) {
         return $this->sendRequestToGateApi('init-payment', $attributes);
     }
-    
+
     public function customRequest($baseUrl, $path, $params){
         $request = $this->makeRequest($path, $params);
         $client = new HttpClient(
@@ -309,10 +313,6 @@ class SolidgateProvider
             ]);
         $response = $client->send($request);
         return $response->getBody()->getContents();
-    }
-
-    public function paypalDisputesReport($attributes) {
-        return $this->sendRequestToReportApi('apm-orders/paypal-disputes', $attributes);
     }
 }
 

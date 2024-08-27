@@ -399,6 +399,34 @@ class SolidgateClient extends PurchasesClient
         );
     }
 
+
+    public function createSubscriptionByAlternativeCardToken(string $orderId, string $productCode, string $cardToken,
+                                                  string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $successUrl, string $failUrl, string $idfm, string $paymentMethod)
+    {
+        $data = [
+            'order_id' => $orderId,
+            'token' => $cardToken,
+            'order_description' => $orderDescription,
+            'order_metadata' => [
+                'idfm' => $idfm,
+                'product_id' => $productCode
+            ],
+            'payment_method' => $paymentMethod,
+            'product_id' => $productCode,
+            'customer_email' => $email,
+            'ip_address' => $ipAddress,
+            'success_url' => $successUrl,
+            'fail_url' => $failUrl,
+            'platform' => 'WEB',
+            'customer_account_id' => $customerAccountId,
+        ];
+        return json_decode(
+            $this->provider->recurring($data),
+            true
+        );
+    }
+
+
     public function retriveProducts($limit, $offset)
     {
         $data = ['pagination[limit]' => $limit, 'pagination[offset]' => $offset, 'filter[status]' => 'active'];
@@ -725,21 +753,4 @@ class SolidgateClient extends PurchasesClient
             $this->provider->initAlternativePayment($data),
             true);
     }
-
-    public function getPaypalDisputesReport($dateFrom, $dateTo, $cursor = null)
-    {
-
-        $data = [
-            'date_from' => $dateFrom,
-            'date_to' => $dateTo,
-        ];
-        if ($cursor) {
-            $data['next_page_iterator'] = $cursor;
-        }
-        return json_decode(
-            $this->provider->paypalDisputesReport($data),
-            true
-        );
-    }
-
 }
