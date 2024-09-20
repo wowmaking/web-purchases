@@ -421,7 +421,7 @@ class SolidgateClient extends PurchasesClient
             'customer_account_id' => $customerAccountId,
         ];
         return json_decode(
-            $this->provider->recurring($data),
+            $this->provider->recurringAlternativePayment($data),
             true
         );
     }
