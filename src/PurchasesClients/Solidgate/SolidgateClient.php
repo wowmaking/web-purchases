@@ -67,7 +67,6 @@ class SolidgateClient extends PurchasesClient
         } while (true);
         foreach ($products as $product) {
             $priceData = $this->retriveProductPrice($product['id'], $attributesForProductPrice);
-
             $price = new Price();
             $price->setId($product['id']);
             $price->setPeriod($product['billing_period']['value'], strtoupper($product['billing_period']['unit'][0]));
@@ -81,18 +80,18 @@ class SolidgateClient extends PurchasesClient
                     if ($item['status'] == 'active') {
                         $priceCurrency = new PriceCurrency();
                         $priceCurrency->setId($item['id']);
-                        $priceCurrency->setAmount($item['product_price'] / 100);
+                        $priceCurrency->setAmount($this->preparePrice($item['product_price'], $item['currency'],"/"));
                         $priceCurrency->setCountry($item['country']);
                         $priceCurrency->setCurrency($item['currency']);
                         if (isset($product['trial']) && isset($product['trial']['billing_period'])) {
-                            $priceCurrency->setTrialPriceAmount($item['trial_price'] / 100);
+                            $priceCurrency->setTrialPriceAmount($this->preparePrice($item['trial_price'], $item['currency'],"/"));
                         }
                         $price->addCurrency($priceCurrency);
                     }
                 }
             }
 
-            $price->setAmount($priceData['product_price'] / 100);
+            $price->setAmount($this->preparePrice($priceData['product_price'], $priceData['currency'],"/"));
             $price->setCurrency($priceData['currency']);
 
 
@@ -106,7 +105,7 @@ class SolidgateClient extends PurchasesClient
                 } elseif($product['trial']['billing_period']['unit'] == 'year'){
                     $price->setTrialPeriodDays($product['trial']['billing_period']['value'] * 365);
                 }
-                $price->setTrialPriceAmount($priceData['trial_price'] / 100);
+                $price->setTrialPriceAmount($this->preparePrice($priceData['trial_price'], $priceData['currency'],"/"));
             }
             $prices[] = $price;
         }
@@ -753,4 +752,27 @@ class SolidgateClient extends PurchasesClient
             $this->provider->initAlternativePayment($data),
             true);
     }
+
+    public function preparePrice($amount, $currency, $action='*') {
+        $currencyWithoutCents = ['BIF', 'CLP', 'DJF', 'GNF', 'ISK', 'JPY', 'KMF', 'KRW', 'PYG', 'RWF', 'UGX', 'VND', 'VUV', 'XAF', 'XPF'];
+        if(in_array($currency, $currencyWithoutCents)){
+            return (int)$amount;
+        }
+        if(in_array($currency, ['JOD'])) {
+            if($action == '*'){
+                return (int)round($amount * 1000);
+            } else {
+                return $amount/1000;
+            }
+        } else {
+            if($action == '*'){
+                return (int)round($amount * 100);
+            } else {
+                return $amount/100;
+            }
+        }
+
+    }
+
+
 }
