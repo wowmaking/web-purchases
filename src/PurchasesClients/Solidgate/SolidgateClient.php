@@ -171,7 +171,7 @@ class SolidgateClient extends PurchasesClient
         $subscription->setEmail($providerResponse['customer']['customer_email']);
         $subscription->setCurrency($providerResponse['product']['currency']);
         $subscription->setAmount(
-            $providerResponse['product']['amount'] / 100
+            $this->preparePrice($providerResponse['product']['amount'], $providerResponse['product']['currency'], "/")
         ); // Solidgate provide amount like this: 999, which originally was 9.99
         $subscription->setCustomerId($providerResponse['customer']['customer_account_id']);
         $subscription->setCreatedAt($providerResponse['subscription']['started_at']);
@@ -400,7 +400,7 @@ class SolidgateClient extends PurchasesClient
 
 
     public function createSubscriptionByAlternativeCardToken(string $orderId, string $productCode, string $cardToken,
-                                                  string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $successUrl, string $failUrl, string $idfm, string $paymentMethod)
+                                                             string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $successUrl, string $failUrl, string $idfm, string $paymentMethod)
     {
         $data = [
             'order_id' => $orderId,
