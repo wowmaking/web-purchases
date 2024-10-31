@@ -84,6 +84,9 @@ class SolidgateClient extends PurchasesClient
                         $priceCurrency->setCountry($item['country']);
                         $priceCurrency->setCurrency($item['currency']);
                         if (isset($product['trial']) && isset($product['trial']['billing_period'])) {
+                            if($product['trial']['payment_action'] == 'auth_0_amount'){
+                                $item['trial_price'] = 0;
+                            }
                             $priceCurrency->setTrialPriceAmount($this->preparePrice($item['trial_price'], $item['currency'],"/"));
                         }
                         $price->addCurrency($priceCurrency);
@@ -104,6 +107,9 @@ class SolidgateClient extends PurchasesClient
                     $price->setTrialPeriodDays($product['trial']['billing_period']['value'] * 30);
                 } elseif($product['trial']['billing_period']['unit'] == 'year'){
                     $price->setTrialPeriodDays($product['trial']['billing_period']['value'] * 365);
+                }
+                if($product['trial']['payment_action'] == 'auth_0_amount'){
+                    $priceData['trial_price'] = 0;
                 }
                 $price->setTrialPriceAmount($this->preparePrice($priceData['trial_price'], $priceData['currency'],"/"));
             }
