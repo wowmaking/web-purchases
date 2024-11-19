@@ -275,6 +275,7 @@ class SolidgateClient extends PurchasesClient
             $solidMetadata = $params['solid_metadata'];
             $solidMetadata['one_time_product_code'] = $productCode;
             $orderMetadata = $solidMetadata;
+            unset($params['solid_metadata']);
         }
 
         $data = [
@@ -293,6 +294,10 @@ class SolidgateClient extends PurchasesClient
             'platform' => 'WEB',
             'force3ds' => $force3ds
         ];
+
+        if($params){
+            $data = array_merge($data, $params);
+        }
 
         if ($failUrl) {
             $data['fail_url'] = $failUrl;
@@ -332,6 +337,7 @@ class SolidgateClient extends PurchasesClient
             $solidMetadata = $params['solid_metadata'];
             $solidMetadata['one_time_product_code'] = $productCode;
             $orderMetadata = $solidMetadata;
+            unset($params['solid_metadata']);
         }
 
         $data = [
@@ -346,6 +352,11 @@ class SolidgateClient extends PurchasesClient
             'ip_address' => $ipAddress,
             'platform' => 'WEB'
         ];
+
+        if($params){
+            $data = array_merge($data, $params);
+        }
+
         return json_decode(
             $this->provider->recurringAlternativePayment($data),
             true
@@ -473,6 +484,7 @@ class SolidgateClient extends PurchasesClient
             $solidMetadata = $params['solid_metadata'];
             $solidMetadata['product_id'] = $productId;
             $orderMetadata = $solidMetadata;
+            unset($params['solid_metadata']);
         }
 
         $data = [
@@ -489,6 +501,10 @@ class SolidgateClient extends PurchasesClient
             'version' => $version,
             'order_metadata' => $orderMetadata,
         ];
+
+        if($params){
+            $data = array_merge($data, $params);
+        }
 
         if ($currency) {
             $data['currency'] = $currency;
@@ -537,6 +553,7 @@ class SolidgateClient extends PurchasesClient
             $solidMetadata = $params['solid_metadata'];
             $solidMetadata['one_time_product_code'] = $productCode;
             $orderMetadata = $solidMetadata;
+            unset($params['solid_metadata']);
         }
 
         $data = [
@@ -554,6 +571,10 @@ class SolidgateClient extends PurchasesClient
             'version' => $version,
             'order_metadata' => $orderMetadata,
         ];
+
+        if($params){
+            $data = array_merge($data, $params);
+        }
 
         return json_decode(
             $this->provider->applePay($data),
@@ -593,6 +614,7 @@ class SolidgateClient extends PurchasesClient
             $solidMetadata = $params['solid_metadata'];
             $solidMetadata['one_time_product_code'] = $productCode;
             $orderMetadata = $solidMetadata;
+            unset($params['solid_metadata']);
         }
 
         $data = [
@@ -610,6 +632,9 @@ class SolidgateClient extends PurchasesClient
             'order_metadata' => $orderMetadata,
         ];
 
+        if($params){
+            $data = array_merge($data, $params);
+        }
         return json_decode(
             $this->provider->googlePay($data),
             true
@@ -748,7 +773,7 @@ class SolidgateClient extends PurchasesClient
             'order_metadata' => $orderMetadata,
         ];
 
-        if(isset($params['mercadopagoParams'])) {
+        if(isset($params['mercadopagoParams']) && isset($params['mercadopagoParams']['country'])) {
             $data['billing_address'] = ['country'=> $params['mercadopagoParams']['country']];
             unset($params['mercadopagoParams']['country']);
             $data = array_merge($data, $params['mercadopagoParams']);
