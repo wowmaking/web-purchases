@@ -135,7 +135,6 @@ class SolidgateProvider
 
             $this->exception = $e;
         }
-
         return '';
     }
 
@@ -270,6 +269,11 @@ class SolidgateProvider
 
     public function restore($attributes){
         return $this->sendRequest('subscription/restore', $attributes);
+    }
+
+    public function pause($subscriptionId, $attributes) {
+
+        return $this->sendRequest('subscriptions/'.$subscriptionId."/pause-schedule", $attributes);
     }
 
     public function changePlan($attributes){

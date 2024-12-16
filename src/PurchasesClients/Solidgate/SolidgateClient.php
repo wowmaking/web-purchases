@@ -146,7 +146,7 @@ class SolidgateClient extends PurchasesClient
     {
         if (!$force) {
             $subscriptionData = $this->getSubscription($subscriptionId);
-            if ($subscriptionData['subscription']['status'] == 'redemption') {
+            if (in_array($subscriptionData['subscription']['status'],['redemption', 'paused'])) {
                 $force = true;
             }
         }
@@ -374,6 +374,31 @@ class SolidgateClient extends PurchasesClient
             return true;
         } else {
             throw new \Exception(json_encode($response['error']['messages']), 415);
+        }
+    }
+
+    public function pause(string $subscriptionId, string $startDate, string $endDate): bool
+    {
+        $params = [];
+        if($startDate == 'now'){
+            $params['start_point'] = ['type' => 'immediate'];
+        } else {
+            $params['start_point'] = ['type' => 'specific_date', 'date' => $startDate];
+        }
+
+        if($endDate == 'infinite'){
+            $params['stop_point'] = ['type' => 'infinite'];
+        } else {
+            $params['stop_point'] = ['type' => 'specific_date', 'date' => $endDate];
+        }
+        $response = json_decode(
+            $this->provider->pause($subscriptionId, $params),
+            true);
+
+        if (!$response) {
+            throw new \Exception("Error with start pause", 415);
+        } else {
+           return true;
         }
     }
 
