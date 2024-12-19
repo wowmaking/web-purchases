@@ -23,6 +23,7 @@ class SolidgateClient extends PurchasesClient
 
     private const STATUS_ACTIVE = 'active';
     private const STATUS_REDEMPTION = 'redemption';
+    private const STATUS_PAUSED = 'paused';
 
     protected $webHookProvider;
 
@@ -186,7 +187,7 @@ class SolidgateClient extends PurchasesClient
         $subscription->setIsActive(
             in_array(
                 $providerResponse['subscription']['status'],
-                [self::STATUS_ACTIVE, self::STATUS_REDEMPTION],
+                [self::STATUS_ACTIVE, self::STATUS_REDEMPTION, self::STATUS_PAUSED],
                 true
             )
         );
