@@ -492,7 +492,7 @@ class SolidgateClient extends PurchasesClient
         );
     }
 
-    public function applePay($productId, $orderId, $deviceId, $customerId, $customerEmail, $ipAddress, $platform, $signature, $data, $header, $version, bool $isIdfm = true, string $currency = null, string $geoCountry = null, array $params = [])
+    public function applePay($productId, $orderId, $orderDescription, $deviceId, $customerId, $customerEmail, $ipAddress, $platform, $signature, $data, $header, $version, bool $isIdfm = true, string $currency = null, string $geoCountry = null, array $params = [])
     {
         $orderMetadata = [
             'idfm' => $deviceId,
@@ -516,7 +516,7 @@ class SolidgateClient extends PurchasesClient
         $data = [
             'product_id' => $productId,
             'order_id' => $orderId,
-            'order_description' => $deviceId,
+            'order_description' => $orderDescription,
             'customer_account_id' => $customerId,
             'customer_email' => $customerEmail,
             'ip_address' => $ipAddress,
@@ -550,6 +550,7 @@ class SolidgateClient extends PurchasesClient
         int    $amount,
         string $currency,
         string $orderId,
+        string $orderDescription,
         string $deviceId,
         string $productCode,
         string $customerEmail,
@@ -586,7 +587,7 @@ class SolidgateClient extends PurchasesClient
             'amount' => $amount,
             'currency' => $currency,
             'order_id' => $orderId,
-            'order_description' => $deviceId,
+            'order_description' => $orderDescription,
             'order_items' => $productCode,
             'customer_email' => $customerEmail,
             'ip_address' => $ipAddress,
@@ -612,6 +613,7 @@ class SolidgateClient extends PurchasesClient
         int    $amount,
         string $currency,
         string $orderId,
+        string $orderDescription,
         string $deviceId,
         string $productCode,
         string $customerEmail,
@@ -647,7 +649,7 @@ class SolidgateClient extends PurchasesClient
             'amount' => $amount,
             'currency' => $currency,
             'order_id' => $orderId,
-            'order_description' => $deviceId,
+            'order_description' => $orderDescription,
             'order_items' => $productCode,
             'customer_email' => $customerEmail,
             'ip_address' => $ipAddress,
