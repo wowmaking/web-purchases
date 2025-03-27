@@ -15,6 +15,8 @@ use Wowmaking\WebPurchases\Resources\Entities\Subscription;
 use yii\db\Exception;
 
 /**
+ * @link https://api-docs.solidgate.com/#tag/Card-payments
+ * @link https://api-docs.solidgate.com/#tag/Alternative-payment-methods
  * @property SolidgateProvider $provider
  */
 class SolidgateClient extends PurchasesClient
@@ -426,6 +428,8 @@ class SolidgateClient extends PurchasesClient
                 'idfm' => $idfm,
                 'product_id' => $productCode
             ],
+            'type' => 'auth',
+            'settle_interval' => 144,
             'product_id' => $productCode,
             'customer_email' => $email,
             'ip_address' => $ipAddress,
@@ -517,6 +521,8 @@ class SolidgateClient extends PurchasesClient
             'product_id' => $productId,
             'order_id' => $orderId,
             'order_description' => $orderDescription,
+            'type' => 'auth',
+            'settle_interval' => 144,
             'customer_account_id' => $customerId,
             'customer_email' => $customerEmail,
             'ip_address' => $ipAddress,
@@ -589,6 +595,8 @@ class SolidgateClient extends PurchasesClient
             'order_id' => $orderId,
             'order_description' => $orderDescription,
             'order_items' => $productCode,
+            'type' => 'auth',
+            'settle_interval' => 144,
             'customer_email' => $customerEmail,
             'ip_address' => $ipAddress,
             'platform' => $platform,
@@ -651,6 +659,8 @@ class SolidgateClient extends PurchasesClient
             'order_id' => $orderId,
             'order_description' => $orderDescription,
             'order_items' => $productCode,
+            'type' => 'auth',
+            'settle_interval' => 144,
             'customer_email' => $customerEmail,
             'ip_address' => $ipAddress,
             'platform' => $platform,
