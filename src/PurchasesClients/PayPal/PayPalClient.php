@@ -60,6 +60,7 @@ class PayPalClient extends PurchasesClient
 
             $price = new Price();
             $price->setId($plan['id']);
+            $price->setType(Price::TYPE_SUBSCRIPTION);
             $price->setProductName($plan['name']);
             $trialCycle = false;
             foreach ($plan['billing_cycles'] as $billingCycle) {

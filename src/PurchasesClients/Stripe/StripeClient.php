@@ -53,6 +53,7 @@ class StripeClient extends PurchasesClient
 
             $price = new Price();
             $price->setId($item->id);
+            $price->setType(Price::TYPE_SUBSCRIPTION);
             $price->setAmount($item->unit_amount);
             $price->setCurrency($item->currency);
             $price->setTrialPeriodDays($item->recurring->trial_period_days ?? 0);

@@ -10,7 +10,13 @@ class Price implements ResourcesEntityInterface
     private const MONTHS_IN_YEAR = 12;
     private const DAYS_IN_WEEK = 7;
 
+    public const TYPE_SUBSCRIPTION = 'subscription';
+    public const TYPE_ONE_TIME = 'one_time';
+
     public $id;
+
+    /** @var string */
+    public $type;
 
     public $amount;
 
@@ -41,6 +47,16 @@ class Price implements ResourcesEntityInterface
     public function setId($id): void
     {
         $this->id = $id;
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): void
+    {
+        $this->type = $type;
     }
 
     /**

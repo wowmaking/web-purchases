@@ -27,6 +27,9 @@ class SolidgateClient extends PurchasesClient
     private const STATUS_REDEMPTION = 'redemption';
     private const STATUS_PAUSED = 'paused';
 
+    private const TYPE_RECURRING = 'recurring';
+    private const TYPE_ONE_TIME = 'one-time';
+
     protected $webHookProvider;
 
     /**
@@ -72,6 +75,7 @@ class SolidgateClient extends PurchasesClient
             $priceData = $this->retriveProductPrice($product['id'], $attributesForProductPrice);
             $price = new Price();
             $price->setId($product['id']);
+            $price->setType($this->mapType($product['type']));
             $price->setPeriod($product['billing_period']['value'], strtoupper($product['billing_period']['unit'][0]));
             $price->setProductName($product['name']);
 
@@ -843,5 +847,13 @@ class SolidgateClient extends PurchasesClient
 
     }
 
+    private function mapType(string $type): string
+    {
+        $map = [
+            self::TYPE_ONE_TIME => Price::TYPE_ONE_TIME,
+            self::TYPE_RECURRING => Price::TYPE_SUBSCRIPTION,
+        ];
 
+        return $map[$type];
+    }
 }

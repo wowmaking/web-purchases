@@ -54,6 +54,7 @@ class PaddleClient extends PurchasesClient
         foreach ($plans as $plan) {
             $price = new Price();
             $price->setId((string)$plan['id']);
+            $price->setType(Price::TYPE_SUBSCRIPTION);
             foreach($plan['recurring_price'] as $currency => $amount) {
                 $price->setAmount($amount);
                 $price->setCurrency($currency);
