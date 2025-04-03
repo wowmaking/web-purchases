@@ -76,7 +76,11 @@ class SolidgateClient extends PurchasesClient
             $price = new Price();
             $price->setId($product['id']);
             $price->setType($this->mapType($product['type']));
-            $price->setPeriod($product['billing_period']['value'], strtoupper($product['billing_period']['unit'][0]));
+
+            if ($product['type'] === self::TYPE_RECURRING) {
+                $price->setPeriod($product['billing_period']['value'], strtoupper($product['billing_period']['unit'][0]));
+            }
+
             $price->setProductName($product['name']);
 
 
@@ -90,7 +94,11 @@ class SolidgateClient extends PurchasesClient
                         $priceCurrency->setAmount($this->preparePrice($item['product_price'], $item['currency'],"/"));
                         $priceCurrency->setCountry($item['country']);
                         $priceCurrency->setCurrency($item['currency']);
-                        if (isset($product['trial']) && isset($product['trial']['billing_period'])) {
+                        if (
+                            $product['type'] === self::TYPE_RECURRING
+                            && isset($product['trial'])
+                            && isset($product['trial']['billing_period'])
+                        ) {
                             if($product['trial']['payment_action'] == 'auth_0_amount'){
                                 $item['trial_price'] = 0;
                             }
@@ -105,7 +113,11 @@ class SolidgateClient extends PurchasesClient
             $price->setCurrency($priceData['currency']);
 
 
-            if (isset($product['trial']) && isset($product['trial']['billing_period'])) {
+            if (
+                $product['type'] === self::TYPE_RECURRING
+                && isset($product['trial'])
+                && isset($product['trial']['billing_period'])
+            ) {
                 if ($product['trial']['billing_period']['unit'] == 'day') {
                     $price->setTrialPeriodDays($product['trial']['billing_period']['value']);
                 } elseif($product['trial']['billing_period']['unit'] == 'week'){
