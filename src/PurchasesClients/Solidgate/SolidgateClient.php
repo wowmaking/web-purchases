@@ -276,6 +276,7 @@ class SolidgateClient extends PurchasesClient
 
     public function oneTimePayment(string $orderId, int $amount, string $currency, string $productCode, string $cardToken,
                                    string $orderDescription, string $email, string $ipAddress, ?string $successUrl, ?string $failUrl, string $deviceId, bool $force3ds = false, bool $isIdfm = true, bool $isRebill = false,
+                                   ?int $productId,
                                    array $params = [])
     {
         $orderMetadata = [
@@ -316,6 +317,10 @@ class SolidgateClient extends PurchasesClient
 
         if($params){
             $data = array_merge($data, $params);
+        }
+
+        if ($productId !== null) {
+            $data['product_id'] = $productId;
         }
 
         if ($failUrl) {
@@ -583,6 +588,7 @@ class SolidgateClient extends PurchasesClient
         string $signature,
         string $version,
         bool   $isIdfm = true,
+        // сюда тоже прокидываю везде productId
         array $params = []
     )
     {
