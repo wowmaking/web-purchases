@@ -343,6 +343,7 @@ class SolidgateClient extends PurchasesClient
 
     public function oneTimePaymentAlternativePayment(string $orderId, int $amount, string $currency, string $productCode, string $token,
                                                      string $orderDescription, string $email, string $ipAddress, string $deviceId, bool $isIdfm = true,
+                                                     ?int $productId,
                                                      array $params = [], $paymentMethod = 'paypal-vault')
     {
         $orderMetadata = [
@@ -379,6 +380,10 @@ class SolidgateClient extends PurchasesClient
 
         if($params){
             $data = array_merge($data, $params);
+        }
+
+        if ($productId !== null) {
+            $data['product_id'] = $productId;
         }
 
         return json_decode(
@@ -579,6 +584,7 @@ class SolidgateClient extends PurchasesClient
         string $orderId,
         string $orderDescription,
         string $deviceId,
+        ?int $productId,
         string $productCode,
         string $customerEmail,
         string $ipAddress,
@@ -588,7 +594,6 @@ class SolidgateClient extends PurchasesClient
         string $signature,
         string $version,
         bool   $isIdfm = true,
-        // сюда тоже прокидываю везде productId
         array $params = []
     )
     {
@@ -629,6 +634,10 @@ class SolidgateClient extends PurchasesClient
             'order_metadata' => $orderMetadata,
         ];
 
+        if ($productId !== null) {
+            $data['product_id'] = $productId;
+        }
+
         if($params){
             $data = array_merge($data, $params);
         }
@@ -645,6 +654,7 @@ class SolidgateClient extends PurchasesClient
         string $orderId,
         string $orderDescription,
         string $deviceId,
+        ?int $productId,
         string $productCode,
         string $customerEmail,
         string $ipAddress,
@@ -691,6 +701,10 @@ class SolidgateClient extends PurchasesClient
             'protocolVersion' => $protocolVersion,
             'order_metadata' => $orderMetadata,
         ];
+
+        if ($productId !== null) {
+            $data['product_id'] = $productId;
+        }
 
         if($params){
             $data = array_merge($data, $params);
