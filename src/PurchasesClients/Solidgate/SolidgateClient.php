@@ -276,7 +276,7 @@ class SolidgateClient extends PurchasesClient
 
     public function oneTimePayment(string $orderId, int $amount, string $currency, string $productCode, string $cardToken,
                                    string $orderDescription, string $email, string $ipAddress, ?string $successUrl, ?string $failUrl, string $deviceId,
-                                   ?int $productId,
+                                   ?string $productId,
                                    bool $force3ds = false, bool $isIdfm = true, bool $isRebill = false,
                                    array $params = [])
     {
@@ -344,7 +344,7 @@ class SolidgateClient extends PurchasesClient
 
     public function oneTimePaymentAlternativePayment(string $orderId, int $amount, string $currency, string $productCode, string $token,
                                                      string $orderDescription, string $email, string $ipAddress, string $deviceId,
-                                                     ?int $productId,
+                                                     ?string $productId,
                                                      bool $isIdfm = true,
                                                      array $params = [], $paymentMethod = 'paypal-vault')
     {
@@ -586,7 +586,7 @@ class SolidgateClient extends PurchasesClient
         string $orderId,
         string $orderDescription,
         string $deviceId,
-        ?int $productId,
+        ?string $productId,
         string $productCode,
         string $customerEmail,
         string $ipAddress,
@@ -656,7 +656,7 @@ class SolidgateClient extends PurchasesClient
         string $orderId,
         string $orderDescription,
         string $deviceId,
-        ?int $productId,
+        ?string $productId,
         string $productCode,
         string $customerEmail,
         string $ipAddress,
@@ -814,7 +814,7 @@ class SolidgateClient extends PurchasesClient
             true);
     }
 
-    public function initAlternativeOneTimePayment(string $paymentMethod, string $orderId, ?int $productId, string $productCode, int $amount, string $currency,
+    public function initAlternativeOneTimePayment(string $paymentMethod, string $orderId, ?string $productId, string $productCode, int $amount, string $currency,
                                                   string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $deviceId, bool $isIdfm = true,
                                                   array $params = [])
     {
