@@ -894,4 +894,21 @@ class SolidgateClient extends PurchasesClient
 
         return $map[$type];
     }
+
+    public function getPaypalDisputesReport($dateFrom, $dateTo, $cursor = null)
+    {
+
+        $data = [
+            'date_from' => $dateFrom,
+            'date_to' => $dateTo,
+        ];
+        if ($cursor) {
+            $data['next_page_iterator'] = $cursor;
+        }
+        return json_decode(
+            $this->provider->paypalDisputesReport($data),
+            true
+        );
+    }
+
 }
