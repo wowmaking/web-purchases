@@ -277,6 +277,7 @@ class SolidgateClient extends PurchasesClient
     public function oneTimePayment(string $orderId, int $amount, string $currency, string $productCode, string $cardToken,
                                    string $orderDescription, string $email, string $ipAddress, ?string $successUrl, ?string $failUrl, string $deviceId,
                                    ?string $productId,
+                                   ?string $customerAccountId,
                                    bool $force3ds = false, bool $isIdfm = true, bool $isRebill = false,
                                    array $params = [])
     {
@@ -309,6 +310,7 @@ class SolidgateClient extends PurchasesClient
             'type' => 'auth',
             'settle_interval' => 144,
             'order_metadata' => $orderMetadata,
+            'customer_account_id' => $customerAccountId,
             'customer_email' => $email,
             'ip_address' => $ipAddress,
             'payment_type' => '1-click',
@@ -345,6 +347,7 @@ class SolidgateClient extends PurchasesClient
     public function oneTimePaymentAlternativePayment(string $orderId, int $amount, string $currency, string $productCode, string $token,
                                                      string $orderDescription, string $email, string $ipAddress, string $deviceId,
                                                      ?string $productId,
+                                                     ?string $customerAccountId,
                                                      bool $isIdfm = true,
                                                      array $params = [], $paymentMethod = 'paypal-vault')
     {
@@ -375,6 +378,7 @@ class SolidgateClient extends PurchasesClient
             'token' => $token,
             'order_description' => $orderDescription,
             'order_metadata' => $orderMetadata,
+            'customer_account_id' => $customerAccountId,
             'customer_email' => $email,
             'ip_address' => $ipAddress,
             'platform' => 'WEB'
