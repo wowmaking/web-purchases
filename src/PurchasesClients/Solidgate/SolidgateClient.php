@@ -310,7 +310,6 @@ class SolidgateClient extends PurchasesClient
             'type' => 'auth',
             'settle_interval' => 144,
             'order_metadata' => $orderMetadata,
-            'customer_account_id' => $customerAccountId,
             'customer_email' => $email,
             'ip_address' => $ipAddress,
             'payment_type' => '1-click',
@@ -324,6 +323,10 @@ class SolidgateClient extends PurchasesClient
 
         if ($productId !== null) {
             $data['product_id'] = $productId;
+        }
+
+        if ($customerAccountId !== null) {
+            $data['customer_account_id'] = $customerAccountId;
         }
 
         if ($failUrl) {
@@ -378,7 +381,6 @@ class SolidgateClient extends PurchasesClient
             'token' => $token,
             'order_description' => $orderDescription,
             'order_metadata' => $orderMetadata,
-            'customer_account_id' => $customerAccountId,
             'customer_email' => $email,
             'ip_address' => $ipAddress,
             'platform' => 'WEB'
@@ -390,6 +392,10 @@ class SolidgateClient extends PurchasesClient
 
         if ($productId !== null) {
             $data['product_id'] = $productId;
+        }
+
+        if ($customerAccountId !== null) {
+            $data['customer_account_id'] = $customerAccountId;
         }
 
         return json_decode(
