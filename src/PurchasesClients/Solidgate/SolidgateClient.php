@@ -919,4 +919,13 @@ class SolidgateClient extends PurchasesClient
         );
     }
 
+    public function updateSubscriptionToken($subscriptionId, $cardToken) {
+        $attributes = [
+            'subscription_id' => $subscriptionId,
+            'token' => $cardToken,
+        ];
+        $this->provider->updateSubscriptionToken($attributes);
+        return true;
+    }
+
 }

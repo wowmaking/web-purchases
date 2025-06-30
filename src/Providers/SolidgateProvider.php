@@ -132,7 +132,6 @@ class SolidgateProvider
             $response = $this->subscriptionsApiClient->send($request);
             return $response->getBody()->getContents();
         } catch (Throwable $e) {
-
             $this->exception = $e;
         }
         return '';
@@ -322,5 +321,11 @@ class SolidgateProvider
     public function paypalDisputesReport($attributes) {
         return $this->sendRequestToReportApi('apm-orders/paypal-disputes', $attributes);
     }
+
+    public function updateSubscriptionToken($attributes) {
+        return $this->sendRequest('subscription/update-token', $attributes);
+    }
+
+
 }
 
