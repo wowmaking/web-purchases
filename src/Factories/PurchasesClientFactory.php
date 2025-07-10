@@ -5,6 +5,7 @@ namespace Wowmaking\WebPurchases\Factories;
 use InvalidArgumentException;
 use Wowmaking\WebPurchases\PurchasesClients\Paddle\PaddleClient;
 use Wowmaking\WebPurchases\PurchasesClients\PayPal\PayPalClient;
+use Wowmaking\WebPurchases\PurchasesClients\Truegate\TruegateClient;
 use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
 use Wowmaking\WebPurchases\PurchasesClients\Recurly\RecurlyClient;
 use Wowmaking\WebPurchases\PurchasesClients\Solidgate\SolidgateClient;
@@ -77,6 +78,14 @@ class PurchasesClientFactory
                     $config['sandbox']
                 );
                 break;
+            case PurchasesClient::PAYMENT_SERVICE_TRUEGATE:
+                if (!isset($config['project_id'], $config['sandbox'], $config['secret_key'])) {
+                    throw new InvalidArgumentException('Required parameters for truegate client was not provided.');
+                }
+                $client = new TruegateClient($config['project_id'], $config['secret_key'], $config['sandbox']);
+                break;
+
+
             default:
                 throw new InvalidArgumentException('Purchases client initialization error.');
         }
