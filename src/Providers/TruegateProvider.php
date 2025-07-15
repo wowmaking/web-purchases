@@ -36,27 +36,50 @@ class TruegateProvider
         return $this->makeRequest('POST', 'subscriptions/subscription-product-plans', $params);
     }
 
-    private function makeRequest(string $method, string $path, array $body = [])
-    {
-        $body['signature'] = $this->signRequest($body);
+    public function startSubscription(array $params) {
+        return $this->makeRequest('POST', 'subscriptions/start', $params, ['metadata']);
+    }
 
+    public function startOneTimePayment(array $params) {
+        return $this->makeRequest('POST', 'pay/start', $params, ['metadata']);
+    }
+
+    public function cancelSubscription(array $params) {
+        return $this->makeRequest('POST', 'subscriptions/cancel', $params);
+    }
+
+    private function makeRequest(string $method, string $path, array $body = [], array $exceptFildsForSign = [])
+    {
+        if($exceptFildsForSign) {
+            $fieldsForSign = array_diff_key($body, array_flip($exceptFildsForSign));
+        } else {
+            $fieldsForSign = $body;
+        }
+
+        $body['signature'] = $this->signRequest($fieldsForSign);
         $response = $this->httpClient->request($method, $path, [
             'headers' =>
                 [
                     'Accept' => 'application/json',
                     'Content-Type' => 'application/json',
+                    'x-forwarded-for' => '109.105.255.253'
                 ],
             'body' => json_encode($body)
         ]);
+
 
         return json_decode($response->getBody(), true);
     }
 
     private function signRequest(array $payload): string {
-        $params = http_build_query($payload);
+        $params = implode('&', array_map(function($k, $v) {
+            return "$k=$v";
+        }, array_keys($payload), $payload));
 
         $signature = hash_hmac("sha256", $params, $this->clientSecret);
         return $signature;
     }
+
+
 
 }

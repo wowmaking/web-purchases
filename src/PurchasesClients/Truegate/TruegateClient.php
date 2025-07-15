@@ -21,9 +21,15 @@ class TruegateClient extends PurchasesClient
     use WithoutCustomerSupportTrait;
 
     private const STATUS_ACTIVE = 'ACTIVE';
+    private const STATUS_TRIAL = 'TRIAL';
+    private const STATUS_GRACE_PERIOD = 'GRACE_PERIOD';
+    private const STATUS_DUNNING_PERIOD = 'GRACE_PERIOD';
+    private const STATUS_UNPAID = 'UNPAID';
+    private const STATUS_CANCELLED = 'CANCELLED';
+    private const STATUS_INCOMPLETE = 'INCOMPLETE';
+    private const STATUS_INCOMPLETE_EXPIRED = 'INCOMPLETE_EXPIRED';
 
-    private const TENURE_TYPE_TRIAL = 'TRIAL';
-    private const TENURE_TYPE_REGULAR = 'REGULAR';
+
 
     private const INTERVAL_UNIT_DAYS_MAP = [
         'DAY' => 1,
@@ -77,28 +83,7 @@ class TruegateClient extends PurchasesClient
 
     public function subscriptionCreationProcess(array $data)
     {
-        $customerId = $data['customer_id'] ?? null;
-        $subscriptionId = $data['subscription_id'] ?? null;
-
-        if (!$customerId || !$subscriptionId) {
-            throw new InvalidArgumentException('Not all required parameters were passed.');
-        }
-
-        $paypalSubscriptionData = $this->getSubscription($subscriptionId);
-
-        $customId = $paypalSubscriptionData['custom_id'] ?? null;
-
-        if (!$customId) {
-            throw new LogicException('Missed custom id for subscription.');
-        }
-
-        $subscriptionCustomerId = $this->getCustomerIdFromCustomId($customId);
-
-        if ($subscriptionCustomerId !== $customerId) {
-            throw new LogicException('Subscription assigned for another customer.');
-        }
-
-        return $paypalSubscriptionData;
+        return $data;
     }
 
     public function getSubscriptions(string $customerId): array
@@ -106,81 +91,75 @@ class TruegateClient extends PurchasesClient
         $this->throwNoRealization(__METHOD__);
     }
 
-    public function cancelSubscription(string $subscriptionId, bool $force = false): Subscription
+    public function cancelSubscription(string $subscriptionId, bool $force = false, string $product = ""): Subscription
     {
-        $this->getProvider()->cancelSubscription($subscriptionId, 'Cancel request.');
-
-        $paypalSubscriptionData = $this->getSubscription($subscriptionId);
-
-        return $this->buildSubscriptionResource($paypalSubscriptionData);
+        $params = ['projectId'=> $this->projectId, 'subscriptionProductPlanId'=> $product,'subscriptionId' => $subscriptionId];
+        $this->getProvider()->cancelSubscription($params, 'Cancel request.');
+        return new Subscription();
     }
 
     public function buildSubscriptionResource($providerResponse): Subscription
     {
-        $trialInterval = null;
-        $regularInterval = null;
-
-        $plan = $this->getProvider()->getPlan($providerResponse['plan_id']);
-
-        if (isset($plan['billing_cycles']) && $plan['billing_cycles']) {
-            $trialCycle = false;
-            foreach ($plan['billing_cycles'] as $billingCycle) {
-                if ($billingCycle['tenure_type'] === self::TENURE_TYPE_REGULAR) {
-                    $intervalUnit = $billingCycle['frequency']['interval_unit'];
-                    $intervalCount = $billingCycle['frequency']['interval_count'];
-
-                    $regularInterval = DateInterval::createFromDateString("$intervalCount $intervalUnit");
-                }
-
-                if ($billingCycle['tenure_type'] === self::TENURE_TYPE_TRIAL && !$trialCycle) {
-                    $trialCycle = true;
-
-                    $intervalUnit = $billingCycle['frequency']['interval_unit'];
-                    $intervalCount = $billingCycle['frequency']['interval_count'];
-
-                    $trialInterval = DateInterval::createFromDateString("$intervalCount $intervalUnit");
-                }
-            }
-        }
-
         $subscription = new Subscription();
+        $subscription->setTransactionId($providerResponse['subscriptionId']);
+        $subscription->setPlanName($providerResponse['subscriptionProductPlanId']);
+        $subscription->setEmail($providerResponse['email']);
+        $subscription->setCurrency($providerResponse['currency']);
+        $subscription->setAmount($providerResponse['amount']);
+        $subscription->setCustomerId($providerResponse['customer_id']);
 
-        $subscription->setTransactionId($providerResponse['id']);
-        $subscription->setPlanName($providerResponse['plan_id']);
-        $subscription->setEmail($providerResponse['subscriber']['email_address']);
-        $subscription->setCurrency(
-            $providerResponse['billing_info']['last_payment']['amount']['currency_code']
-            ?? $providerResponse['shipping_amount']['currency_code']
+        $subscription->setCreatedAt($providerResponse['createdAt']);
+        $subscription->setExpireAt($providerResponse['subscriptionNextChargeAt']);
+        $subscription->setState($providerResponse['subscriptionStatus']);
+        $subscription->setIsActive(
+            in_array(
+                $providerResponse['subscriptionStatus'],
+                [self::STATUS_ACTIVE, self::STATUS_TRIAL, self::STATUS_DUNNING_PERIOD, self::STATUS_GRACE_PERIOD],
+                true
+            )
         );
-        $subscription->setAmount($providerResponse['billing_info']['last_payment']['amount']['value']
-            ?? $providerResponse['shipping_amount']['value']);
-        $subscription->setCustomerId($this->getCustomerIdFromCustomId($providerResponse['custom_id']));
-        $subscription->setCreatedAt($providerResponse['create_time']);
-
-        $startDate = new DateTimeImmutable($providerResponse['start_time']);
-
-        if ($trialInterval) {
-            $subscription->setTrialStartAt($startDate->format('c'));
-            $subscription->setTrialEndAt($startDate->add($trialInterval)->format('c'));
-        }
-
-        if ($regularInterval) {
-            $regularEnds = $startDate->add($regularInterval);
-
-            if ($trialInterval) {
-                $regularEnds = $regularEnds->add($trialInterval);
-            }
-
-            $subscription->setExpireAt($regularEnds->format('c'));
-        }
-
-        $subscription->setState($providerResponse['status']);
-        $subscription->setIsActive($providerResponse['status'] === self::STATUS_ACTIVE);
-        $subscription->setProvider(PurchasesClient::PAYMENT_SERVICE_PAYPAL);
+        $subscription->setProvider(PurchasesClient::PAYMENT_SERVICE_TRUEGATE);
         $subscription->setProviderResponse($providerResponse);
 
+        if (isset($providerResponse['subscription']['cancelled_at'])) {
+            $subscription->setCanceledAt($providerResponse['subscription']['cancelled_at']);
+        }
+
+        if ($providerResponse['subscriptionStatus'] == self::STATUS_TRIAL) {
+            $subscription->setTrialStartAt($providerResponse['createdAt']);
+            if (isset($providerResponse['subscriptionNextChargeAt'])) {
+                $subscription->setTrialEndAt($providerResponse['subscriptionNextChargeAt']);
+            } else {
+                $subscription->setTrialEndAt($providerResponse['subscription']['expired_at']);
+            }
+        }
         return $subscription;
     }
+
+    public function startSubscription(string $planId, string $idfm, string $email, array $metadata = []) {
+        $params = [
+            'projectId'=> $this->projectId,
+            'subscriptionProductPlanId' => $planId,
+            'externalUserId' => $idfm,
+            'email' => $email,
+            'metadata' => $metadata
+        ];
+        return $this->getProvider()->startSubscription($params);
+    }
+
+    public function startOneTimePayment(float $amount, string $currency, string $idfm, string $email, array $metadata = []) {
+        return ['transactionId'=> 'test-'.rand(0,999)."-".$amount, 'widget'=> 'https://sdfasdfasdf.com'];
+        $params = [
+            'projectId'=> $this->projectId,
+            'externalUserId' => $idfm,
+            'email' => $email,
+            'currency' => $currency,
+            'amount' => $amount,
+            'metadata' => $metadata
+        ];
+        return $this->getProvider()->startOneTimePayment($params);
+    }
+
 
     public function loadProvider(): void
     {
@@ -235,5 +214,7 @@ class TruegateClient extends PurchasesClient
     public function getDisputeDetails($id) {
         return $this->getProvider()->getDistuteDetails($id);
     }
+
+
 
 }

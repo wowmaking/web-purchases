@@ -120,6 +120,7 @@ abstract class PurchasesClient implements PurchasesClientInterface
 
     public function createSubscription(array $data, TrackDataDto $trackDataDto = null): Subscription
     {
+        
         $response = $this->subscriptionCreationProcess($data);
 
         $subscription = $this->buildSubscriptionResource($response);
