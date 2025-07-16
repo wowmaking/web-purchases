@@ -91,9 +91,9 @@ class TruegateClient extends PurchasesClient
         $this->throwNoRealization(__METHOD__);
     }
 
-    public function cancelSubscription(string $subscriptionId, bool $force = false, string $product = ""): Subscription
+    public function cancelSubscription(string $subscriptionId, bool $force = false): Subscription
     {
-        $params = ['projectId'=> $this->projectId, 'subscriptionProductPlanId'=> $product,'subscriptionId' => $subscriptionId];
+        $params = ['projectId'=> $this->projectId, 'subscriptionId' => $subscriptionId];
         $this->getProvider()->cancelSubscription($params, 'Cancel request.');
         return new Subscription();
     }
