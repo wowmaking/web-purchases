@@ -20,7 +20,7 @@ class RecurlyClient extends PurchasesClient
 
     protected $region;
 
-    public function __construct(string $publicKey, string $secretKey, string $region = null)
+    public function __construct(string $publicKey, string $secretKey, ?string $region)
     {
         $this->publicKey = $publicKey;
         $this->region = $region;
