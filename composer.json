@@ -18,7 +18,7 @@
         }
     ],
     "require": {
-        "php": ">=7.2.0",
+        "php": ">=8.0 <8.5",
         "stripe/stripe-php": "^7.93",
         "recurly/recurly-client": "^4.6",
         "guzzlehttp/guzzle": "^7.3",
