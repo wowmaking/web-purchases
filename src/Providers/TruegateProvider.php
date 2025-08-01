@@ -44,8 +44,17 @@ class TruegateProvider
         return $this->makeRequest('POST', 'pay/start', $params, ['metadata']);
     }
 
+    public function oneTimePayment(array $params) {
+        return $this->makeRequest('POST', 'one-time-payments/create', $params, ['metadata']);
+    }
+
     public function cancelSubscription(array $params) {
-        return $this->makeRequest('POST', 'subscriptions/cancel', $params);
+
+        return $this->makeRequest('POST', 'subscriptions/cancel', $params, ['isHard']);
+    }
+
+    public function getTransactionDetails(array $params) {
+        return $this->makeRequest('POST', 'subscriptions/transactions/details', $params);
     }
 
     private function makeRequest(string $method, string $path, array $body = [], array $exceptFildsForSign = [])
@@ -79,6 +88,9 @@ class TruegateProvider
         $signature = hash_hmac("sha256", $params, $this->clientSecret);
         return $signature;
     }
+
+
+
 
 
 

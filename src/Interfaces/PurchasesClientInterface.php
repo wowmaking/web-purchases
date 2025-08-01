@@ -45,7 +45,7 @@ interface PurchasesClientInterface
      */
     public function updateCustomer(string $customerId, array $data): Customer;
 
-    public function createSubscription(array $data, ?TrackDataDto $trackDataDto): Subscription;
+    public function createSubscription(array $data, TrackDataDto $trackDataDto = null): Subscription;
 
     /**
      * @param array $data

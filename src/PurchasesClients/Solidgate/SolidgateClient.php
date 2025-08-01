@@ -528,7 +528,7 @@ class SolidgateClient extends PurchasesClient
         );
     }
 
-    public function applePay($productId, $orderId, $orderDescription, $deviceId, $customerId, $customerEmail, $ipAddress, $platform, $signature, $data, $header, $version, bool $isIdfm, ?string $currency, ?string $geoCountry, array $params = [])
+    public function applePay($productId, $orderId, $orderDescription, $deviceId, $customerId, $customerEmail, $ipAddress, $platform, $signature, $data, $header, $version, bool $isIdfm = true, string $currency = null, string $geoCountry = null, array $params = [])
     {
         $orderMetadata = [
             'idfm' => $deviceId,
@@ -772,7 +772,7 @@ class SolidgateClient extends PurchasesClient
     }
 
     public function initAlternativePayment(string $paymentMethod, string $orderId, string $productId,
-                                           string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $deviceId, ?string $currency, ?string $geoCountry, bool $isIdfm = true,
+                                           string $orderDescription, string $email, string $customerAccountId, string $ipAddress, string $deviceId, string $currency = null, string $geoCountry = null, bool $isIdfm = true,
                                            array $params = [])
     {
         $orderMetadata = [

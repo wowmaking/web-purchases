@@ -53,15 +53,14 @@ class TruegateClient extends PurchasesClient
     public function getPrices(array $pricesIds = []): array
     {
         $params = ['projectId'=> $this->projectId];
-        $plans = $this->getProvider()->listPlans($params, 1);
+        $plans = $this->getProvider()->listPlans($params);
 
         $prices = [];
 
-        foreach ($plans as $plan) {
+        foreach ($plans['items'] as $plan) {
             if ($plan['state'] !== self::STATUS_ACTIVE) {
                 continue;
             }
-
             $price = new Price();
             $price->setId($plan['id']);
             $price->setType(Price::TYPE_SUBSCRIPTION);
@@ -93,7 +92,7 @@ class TruegateClient extends PurchasesClient
 
     public function cancelSubscription(string $subscriptionId, bool $force = false): Subscription
     {
-        $params = ['projectId'=> $this->projectId, 'subscriptionId' => $subscriptionId];
+        $params = ['projectId'=> $this->projectId, 'subscriptionId' => $subscriptionId, 'isHard'=>$force];
         $this->getProvider()->cancelSubscription($params, 'Cancel request.');
         return new Subscription();
     }
@@ -109,11 +108,11 @@ class TruegateClient extends PurchasesClient
         $subscription->setCustomerId($providerResponse['customer_id']);
 
         $subscription->setCreatedAt($providerResponse['createdAt']);
-        $subscription->setExpireAt($providerResponse['subscriptionNextChargeAt']);
-        $subscription->setState($providerResponse['subscriptionStatus']);
+        $subscription->setExpireAt($providerResponse['nextPaymentDate']);
+        $subscription->setState($providerResponse['state']);
         $subscription->setIsActive(
             in_array(
-                $providerResponse['subscriptionStatus'],
+                $providerResponse['state'],
                 [self::STATUS_ACTIVE, self::STATUS_TRIAL, self::STATUS_DUNNING_PERIOD, self::STATUS_GRACE_PERIOD],
                 true
             )
@@ -125,12 +124,10 @@ class TruegateClient extends PurchasesClient
             $subscription->setCanceledAt($providerResponse['subscription']['cancelled_at']);
         }
 
-        if ($providerResponse['subscriptionStatus'] == self::STATUS_TRIAL) {
+        if ($providerResponse['state'] == self::STATUS_TRIAL) {
             $subscription->setTrialStartAt($providerResponse['createdAt']);
-            if (isset($providerResponse['subscriptionNextChargeAt'])) {
-                $subscription->setTrialEndAt($providerResponse['subscriptionNextChargeAt']);
-            } else {
-                $subscription->setTrialEndAt($providerResponse['subscription']['expired_at']);
+            if (isset($providerResponse['nextPaymentDate'])) {
+                $subscription->setTrialEndAt($providerResponse['nextPaymentDate']);
             }
         }
         return $subscription;
@@ -147,8 +144,7 @@ class TruegateClient extends PurchasesClient
         return $this->getProvider()->startSubscription($params);
     }
 
-    public function startOneTimePayment(float $amount, string $currency, string $idfm, string $email, array $metadata = []) {
-        return ['transactionId'=> 'test-'.rand(0,999)."-".$amount, 'widget'=> 'https://sdfasdfasdf.com'];
+    public function startOneTimePayment(string $amount, string $currency, string $idfm, string $email, array $metadata = []) {
         $params = [
             'projectId'=> $this->projectId,
             'externalUserId' => $idfm,
@@ -160,6 +156,18 @@ class TruegateClient extends PurchasesClient
         return $this->getProvider()->startOneTimePayment($params);
     }
 
+    public function oneTimePayment(string $transactionId, string $amount, string $currency, string $subscriptionId, string $description, array $metadata = []) {
+        $params = [
+            'transactionId' => $transactionId,
+            'projectId'=> $this->projectId,
+            'subscriptionId' => $subscriptionId,
+            'amount' => $amount,
+            'currency' => $currency,
+            'description' => $description,
+            'metadata' => $metadata
+        ];
+        return $this->getProvider()->oneTimePayment($params);
+    }
 
     public function loadProvider(): void
     {
@@ -171,9 +179,13 @@ class TruegateClient extends PurchasesClient
         return $this->getProvider()->getSubscription($subscriptionId);
     }
 
-    public function checkOrderStatus(string $orderId)
+    public function checkOrderStatus(string $transactionId): array
     {
-        return $this->getProvider()->checkOrderStatus($orderId);
+        $params = [
+            'projectId'=> $this->projectId,
+            'transactionId' => $transactionId,
+        ];
+        return $this->getProvider()->getTransactionDetails($params);
     }
 
     public function refund(string $orderId, float $amount, string $currency)
