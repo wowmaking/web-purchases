@@ -82,7 +82,21 @@ class TruegateClient extends PurchasesClient
 
     public function subscriptionCreationProcess(array $data)
     {
-        return $data;
+        $subscriptionId = $data['subscription_id'] ?? null;
+        $externalUserId = $data['external_user_id'] ?? null;
+        if (!$subscriptionId || !$externalUserId) {
+            throw new InvalidArgumentException('Not all required parameters were passed.');
+        }
+
+        $subscriptionData = $this->getSubscription($subscriptionId);
+
+        if ($subscriptionData['externalUserId'] !== $externalUserId) {
+            throw new LogicException('Subscription assigned for another customer.');
+        }
+        $subscriptionData['email'] = $data['email'];
+        $subscriptionData['customer_id'] = $data['customer_id'];
+        return $subscriptionData;
+
     }
 
     public function getSubscriptions(string $customerId): array
@@ -93,7 +107,7 @@ class TruegateClient extends PurchasesClient
     public function cancelSubscription(string $subscriptionId, bool $force = false): Subscription
     {
         $params = ['projectId'=> $this->projectId, 'subscriptionId' => $subscriptionId, 'isHard'=>$force];
-        $this->getProvider()->cancelSubscription($params, 'Cancel request.');
+        $data = $this->getProvider()->cancelSubscription($params, 'Cancel request.');
         return new Subscription();
     }
 
@@ -102,26 +116,25 @@ class TruegateClient extends PurchasesClient
         $subscription = new Subscription();
         $subscription->setTransactionId($providerResponse['subscriptionId']);
         $subscription->setPlanName($providerResponse['subscriptionProductPlanId']);
-        $subscription->setEmail($providerResponse['email']);
-        $subscription->setCurrency($providerResponse['currency']);
-        $subscription->setAmount($providerResponse['amount']);
+        $subscription->setEmail($providerResponse['lastTransaction']['cardDetails']['email']);
+        $subscription->setCurrency($providerResponse['lastTransaction']['currency']);
+        $subscription->setAmount($providerResponse['lastTransaction']['amount']);
         $subscription->setCustomerId($providerResponse['customer_id']);
-
         $subscription->setCreatedAt($providerResponse['createdAt']);
         $subscription->setExpireAt($providerResponse['nextPaymentDate']);
         $subscription->setState($providerResponse['state']);
         $subscription->setIsActive(
             in_array(
                 $providerResponse['state'],
-                [self::STATUS_ACTIVE, self::STATUS_TRIAL, self::STATUS_DUNNING_PERIOD, self::STATUS_GRACE_PERIOD],
+                [self::STATUS_ACTIVE, self::STATUS_TRIAL, self::STATUS_DUNNING_PERIOD, self::STATUS_GRACE_PERIOD, self::STATUS_INCOMPLETE, self::STATUS_CANCELLED],
                 true
             )
         );
         $subscription->setProvider(PurchasesClient::PAYMENT_SERVICE_TRUEGATE);
         $subscription->setProviderResponse($providerResponse);
 
-        if (isset($providerResponse['subscription']['cancelled_at'])) {
-            $subscription->setCanceledAt($providerResponse['subscription']['cancelled_at']);
+        if ($providerResponse['state'] == self::STATUS_CANCELLED) {
+            $subscription->setCanceledAt($providerResponse['updatedAt']);
         }
 
         if ($providerResponse['state'] == self::STATUS_TRIAL) {
@@ -169,6 +182,20 @@ class TruegateClient extends PurchasesClient
         return $this->getProvider()->oneTimePayment($params);
     }
 
+    public function oneTimePaymentWithExternalUserId(string $transactionId, string $amount, string $email, string $currency, string $externalUserId, string $description, array $metadata = []) {
+        $params = [
+            'transactionId' => $transactionId,
+            'projectId'=> $this->projectId,
+            'externalUserId' => $externalUserId,
+            'email' => $email,
+            'currency' => $currency,
+            'amount' => $amount,
+            'description' => $description,
+            'metadata' => $metadata
+        ];
+        return $this->getProvider()->oneTimePaymentWithExternalUserId($params);
+    }
+
     public function loadProvider(): void
     {
         $this->setProvider(new TruegateProvider($this->secretKey, $this->isSandbox));
@@ -176,7 +203,11 @@ class TruegateClient extends PurchasesClient
 
     public function getSubscription(string $subscriptionId)
     {
-        return $this->getProvider()->getSubscription($subscriptionId);
+        $params = [
+            'projectId'=> $this->projectId,
+            'subscriptionId' => $subscriptionId,
+        ];
+        return $this->getProvider()->getSubscription($params);
     }
 
     public function checkOrderStatus(string $transactionId): array

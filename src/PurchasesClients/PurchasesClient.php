@@ -135,7 +135,7 @@ abstract class PurchasesClient implements PurchasesClientInterface
 
         $tracks = [];
 
-        if ($subscription->getProvider() !== 'solidgate') {
+        if (!in_array($subscription->getProvider(), [PurchasesClient::PAYMENT_SERVICE_TRUEGATE, PurchasesClient::PAYMENT_SERVICE_SOLIDGATE])) {
             if ($this->getSubtruck()) {
                 $tracks['subtruck'] = $this->getSubtruck()->track($subscription, $trackParams);
             }
