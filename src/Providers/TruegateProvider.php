@@ -53,7 +53,7 @@ class TruegateProvider
     }
 
     public function cancelSubscription(array $params) {
-        return $this->makeRequest('POST', 'subscriptions/cancel', $params, ['isHard']);
+        return $this->makeRequest('POST', 'subscriptions/cancel', $params);
     }
 
     public function getTransactionDetails(array $params) {
@@ -71,7 +71,6 @@ class TruegateProvider
         } else {
             $fieldsForSign = $body;
         }
-
         $body['signature'] = $this->signRequest($fieldsForSign);
         $response = $this->httpClient->request($method, $path, [
             'headers' =>
@@ -89,6 +88,9 @@ class TruegateProvider
 
     private function signRequest(array $payload): string {
         $params = implode('&', array_map(function($k, $v) {
+            if(is_bool($v)){
+                $v = $v ? 'true' : 'false';
+            }
             return "$k=$v";
         }, array_keys($payload), $payload));
 
