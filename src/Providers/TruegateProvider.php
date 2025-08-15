@@ -88,10 +88,10 @@ class TruegateProvider
 
     private function signRequest(array $payload): string {
         $params = implode('&', array_map(function($k, $v) {
-            if(is_bool($v)){
+            if(is_bool($v)) {
                 $v = $v ? 'true' : 'false';
             }
-            return "$k=$v";
+            return "$k=".urlencode($v);
         }, array_keys($payload), $payload));
 
         $signature = hash_hmac("sha256", $params, $this->clientSecret);
