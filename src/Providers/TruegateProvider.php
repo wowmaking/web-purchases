@@ -77,7 +77,6 @@ class TruegateProvider
                 [
                     'Accept' => 'application/json',
                     'Content-Type' => 'application/json',
-                    'x-forwarded-for' => '109.105.255.253'
                 ],
             'body' => json_encode($body)
         ]);
