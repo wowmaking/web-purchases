@@ -118,7 +118,7 @@ abstract class PurchasesClient implements PurchasesClientInterface
         $this->subtruck = $subtruck;
     }
 
-    public function createSubscription(array $data, TrackDataDto $trackDataDto = null): Subscription
+    public function createSubscription(array $data, ?TrackDataDto $trackDataDto = null): Subscription
     {
         
         $response = $this->subscriptionCreationProcess($data);
