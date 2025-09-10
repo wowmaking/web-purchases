@@ -146,24 +146,26 @@ class TruegateClient extends PurchasesClient
         return $subscription;
     }
 
-    public function startSubscription(string $planId, string $idfm, string $email, array $metadata = []) {
+    public function startSubscription(string $planId, string $idfm, string $email, string $merchantName, array $metadata = []) {
         $params = [
             'projectId'=> $this->projectId,
             'subscriptionProductPlanId' => $planId,
             'externalUserId' => $idfm,
             'email' => $email,
+            'customPaymentDescriptor' => $merchantName,
             'metadata' => $metadata
         ];
         return $this->getProvider()->startSubscription($params);
     }
 
-    public function startOneTimePayment(string $amount, string $currency, string $idfm, string $email, array $metadata = []) {
+    public function startOneTimePayment(string $amount, string $currency, string $idfm, string $email, string $merchantName, array $metadata = []) {
         $params = [
             'projectId'=> $this->projectId,
             'externalUserId' => $idfm,
             'email' => $email,
             'currency' => $currency,
             'amount' => $amount,
+            'customPaymentDescriptor' => $merchantName,
             'metadata' => $metadata
         ];
         return $this->getProvider()->startOneTimePayment($params);
