@@ -37,11 +37,11 @@ class TruegateProvider
     }
 
     public function startSubscription(array $params) {
-        return $this->makeRequest('POST', 'subscriptions/start', $params, ['metadata']);
+        return $this->makeRequest('POST', 'subscriptions/start', $params, ['metadata', 'customPaymentDescriptor']);
     }
 
     public function startOneTimePayment(array $params) {
-        return $this->makeRequest('POST', 'pay/start', $params, ['metadata']);
+        return $this->makeRequest('POST', 'pay/start', $params, ['metadata', 'customPaymentDescriptor']);
     }
 
     public function oneTimePayment(array $params) {
