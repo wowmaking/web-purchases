@@ -89,22 +89,24 @@ class SolidgateClient extends PurchasesClient
                     $priceData = $item;
                 } else {
                     if ($item['status'] == 'active') {
-                        $priceCurrency = new PriceCurrency();
-                        $priceCurrency->setId($item['id']);
-                        $priceCurrency->setAmount($this->preparePrice($item['product_price'], $item['currency'],"/"));
-                        $priceCurrency->setCountry($item['country']);
-                        $priceCurrency->setCurrency($item['currency']);
-                        if (
-                            $product['type'] === self::TYPE_RECURRING
-                            && isset($product['trial'])
-                            && isset($product['trial']['billing_period'])
-                        ) {
-                            if($product['trial']['payment_action'] == 'auth_0_amount'){
-                                $item['trial_price'] = 0;
+                        if(isset($item['country'])) {
+                            $priceCurrency = new PriceCurrency();
+                            $priceCurrency->setId($item['id']);
+                            $priceCurrency->setAmount($this->preparePrice($item['product_price'], $item['currency'], "/"));
+                            $priceCurrency->setCountry($item['country']);
+                            $priceCurrency->setCurrency($item['currency']);
+                            if (
+                                $product['type'] === self::TYPE_RECURRING
+                                && isset($product['trial'])
+                                && isset($product['trial']['billing_period'])
+                            ) {
+                                if ($product['trial']['payment_action'] == 'auth_0_amount') {
+                                    $item['trial_price'] = 0;
+                                }
+                                $priceCurrency->setTrialPriceAmount($this->preparePrice($item['trial_price'], $item['currency'], "/"));
                             }
-                            $priceCurrency->setTrialPriceAmount($this->preparePrice($item['trial_price'], $item['currency'],"/"));
+                            $price->addCurrency($priceCurrency);
                         }
-                        $price->addCurrency($priceCurrency);
                     }
                 }
             }
