@@ -7,7 +7,7 @@ use LogicException;
 
 class TruegateProvider
 {
-    private const BASE_URL_SANDBOX = 'https://public-api.asapcashier-dev.com/api/v1/';
+    private const BASE_URL_SANDBOX = 'https://public-api.asapcashier.test.truegate.tech/api/v1/';
     private const BASE_URL_PROD = 'https://public-api.asapcashier.truegate.tech/api/v1/';
 
     /**
