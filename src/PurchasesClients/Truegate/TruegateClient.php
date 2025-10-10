@@ -30,7 +30,6 @@ class TruegateClient extends PurchasesClient
     private const STATUS_INCOMPLETE_EXPIRED = 'INCOMPLETE_EXPIRED';
 
 
-
     private const INTERVAL_UNIT_DAYS_MAP = [
         'DAY' => 1,
         'WEEK' => 7,
@@ -52,7 +51,7 @@ class TruegateClient extends PurchasesClient
 
     public function getPrices(array $pricesIds = []): array
     {
-        $params = ['projectId'=> $this->projectId];
+        $params = ['projectId' => $this->projectId];
         $plans = $this->getProvider()->listPlans($params);
 
         $prices = [];
@@ -67,13 +66,13 @@ class TruegateClient extends PurchasesClient
             $price->setProductName($plan['name']);
             $price->setAmount($plan['price']);
             $price->setCurrency($plan['currency']);
-            $price->setPeriod((int) $plan['duration'], (string) $plan['durationUnit']);
-            if(isset($plan['trial']) && $plan['trial']){
+            $price->setPeriod((int)$plan['duration'], (string)$plan['durationUnit']);
+            if (isset($plan['trial']) && $plan['trial']) {
                 $intervalUnit = $plan['trial']['durationUnit'];
                 $intervalCount = $plan['trial']['duration'];
                 $intervalDays = self::INTERVAL_UNIT_DAYS_MAP[$intervalUnit] ?? 0;
                 $price->setTrialPeriodDays($intervalDays * $intervalCount);
-                $price->setTrialPriceAmount($plan['trial']['price']?$plan['trial']['price']:0);
+                $price->setTrialPriceAmount($plan['trial']['price'] ? $plan['trial']['price'] : 0);
             }
             $prices[] = $price;
         }
@@ -106,7 +105,7 @@ class TruegateClient extends PurchasesClient
 
     public function cancelSubscription(string $subscriptionId, bool $force = false): Subscription
     {
-        $params = ['projectId'=> $this->projectId, 'subscriptionId' => $subscriptionId, 'isHard'=>$force];
+        $params = ['projectId' => $this->projectId, 'subscriptionId' => $subscriptionId, 'isHard' => $force];
         $data = $this->getProvider()->cancelSubscription($params, 'Cancel request.');
         return new Subscription();
     }
@@ -146,9 +145,10 @@ class TruegateClient extends PurchasesClient
         return $subscription;
     }
 
-    public function startSubscription(string $planId, string $idfm, string $email, string $merchantName, array $metadata = []) {
+    public function startSubscription(string $planId, string $idfm, string $email, string $merchantName, array $metadata = [])
+    {
         $params = [
-            'projectId'=> $this->projectId,
+            'projectId' => $this->projectId,
             'subscriptionProductPlanId' => $planId,
             'externalUserId' => $idfm,
             'email' => $email,
@@ -158,9 +158,10 @@ class TruegateClient extends PurchasesClient
         return $this->getProvider()->startSubscription($params);
     }
 
-    public function startOneTimePayment(string $amount, string $currency, string $idfm, string $email, string $merchantName, array $metadata = []) {
+    public function startOneTimePayment(string $amount, string $currency, string $idfm, string $email, string $merchantName, array $metadata = [])
+    {
         $params = [
-            'projectId'=> $this->projectId,
+            'projectId' => $this->projectId,
             'externalUserId' => $idfm,
             'email' => $email,
             'currency' => $currency,
@@ -171,10 +172,11 @@ class TruegateClient extends PurchasesClient
         return $this->getProvider()->startOneTimePayment($params);
     }
 
-    public function oneTimePayment(string $transactionId, string $amount, string $currency, string $subscriptionId, string $description, array $metadata = []) {
+    public function oneTimePayment(string $transactionId, string $amount, string $currency, string $subscriptionId, string $description, array $metadata = [])
+    {
         $params = [
             'transactionId' => $transactionId,
-            'projectId'=> $this->projectId,
+            'projectId' => $this->projectId,
             'subscriptionId' => $subscriptionId,
             'amount' => $amount,
             'currency' => $currency,
@@ -184,10 +186,11 @@ class TruegateClient extends PurchasesClient
         return $this->getProvider()->oneTimePayment($params);
     }
 
-    public function oneTimePaymentWithExternalUserId(string $transactionId, string $amount, string $email, string $currency, string $externalUserId, string $description, array $metadata = []) {
+    public function oneTimePaymentWithExternalUserId(string $transactionId, string $amount, string $email, string $currency, string $externalUserId, string $description, array $metadata = [])
+    {
         $params = [
             'transactionId' => $transactionId,
-            'projectId'=> $this->projectId,
+            'projectId' => $this->projectId,
             'externalUserId' => $externalUserId,
             'email' => $email,
             'currency' => $currency,
@@ -197,6 +200,7 @@ class TruegateClient extends PurchasesClient
         ];
         return $this->getProvider()->oneTimePaymentWithExternalUserId($params);
     }
+    
 
     public function loadProvider(): void
     {
@@ -206,7 +210,7 @@ class TruegateClient extends PurchasesClient
     public function getSubscription(string $subscriptionId)
     {
         $params = [
-            'projectId'=> $this->projectId,
+            'projectId' => $this->projectId,
             'subscriptionId' => $subscriptionId,
         ];
         return $this->getProvider()->getSubscription($params);
@@ -215,7 +219,7 @@ class TruegateClient extends PurchasesClient
     public function checkOrderStatus(string $transactionId): array
     {
         $params = [
-            'projectId'=> $this->projectId,
+            'projectId' => $this->projectId,
             'transactionId' => $transactionId,
         ];
         return $this->getProvider()->getTransactionDetails($params);
@@ -248,18 +252,29 @@ class TruegateClient extends PurchasesClient
         $this->throwNoRealization(__METHOD__);
     }
 
-    public function getTransactions($startDate, $endDate, $page) {
+    public function getTransactions($startDate, $endDate, $page)
+    {
         return $this->getProvider()->getTransactions($startDate, $endDate, $page);
     }
 
-    public function getDisputes($params){
+    public function getDisputes($params)
+    {
         return $this->getProvider()->getDistutes($params);
     }
 
-    public function getDisputeDetails($id) {
+    public function getDisputeDetails($id)
+    {
         return $this->getProvider()->getDistuteDetails($id);
     }
 
+    public function getTransactionsBySubscriptionId($subscriptionId)
+    {
+        $params = [
+            'projectId' => $this->projectId,
+            'subscriptionId' => $subscriptionId,
+        ];
+        return $this->getProvider()->getTransactionsBySubscriptionId($params);
+    }
 
 
 }

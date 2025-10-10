@@ -64,6 +64,10 @@ class TruegateProvider
         return $this->makeRequest('POST', 'subscriptions/details', $params);
     }
 
+    public function getTransactionsBySubscriptionId(array $params){
+        return $this->makeRequest('POST', 'subscriptions/transactions/bySubscriptionId', $params);
+    }
+
     private function makeRequest(string $method, string $path, array $body = [], array $exceptFildsForSign = [])
     {
         if($exceptFildsForSign) {
