@@ -60,9 +60,15 @@ class TruegateProvider
         return $this->makeRequest('POST', 'subscriptions/transactions/details', $params);
     }
 
+    public function refund(array $params) {
+        return $this->makeRequest('POST', 'pay/refund', $params);
+    }
+
     public function getSubscription(array $params) {
         return $this->makeRequest('POST', 'subscriptions/details', $params);
     }
+
+
 
     public function getTransactionsBySubscriptionId(array $params){
         return $this->makeRequest('POST', 'subscriptions/transactions/bySubscriptionId', $params);

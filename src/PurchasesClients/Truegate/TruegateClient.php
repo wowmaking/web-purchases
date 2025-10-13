@@ -200,7 +200,7 @@ class TruegateClient extends PurchasesClient
         ];
         return $this->getProvider()->oneTimePaymentWithExternalUserId($params);
     }
-    
+
 
     public function loadProvider(): void
     {
@@ -225,9 +225,13 @@ class TruegateClient extends PurchasesClient
         return $this->getProvider()->getTransactionDetails($params);
     }
 
-    public function refund(string $orderId, float $amount, string $currency)
+    public function refund(string $orderId)
     {
-        return $this->getProvider()->refund($orderId, $amount, $currency);
+        $params = [
+            'projectId' => $this->projectId,
+            'transactionId' => $orderId,
+        ];
+        return $this->getProvider()->refund($params);
     }
 
     private function getCustomerIdFromCustomId(string $customId): string
