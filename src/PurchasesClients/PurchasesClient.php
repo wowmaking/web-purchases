@@ -164,6 +164,10 @@ abstract class PurchasesClient implements PurchasesClientInterface
         throw new LogicException(sprintf('"%s" method is not realized yet.', $methodName));
     }
 
+    public function preparePrice($amount, $currency, $action='*') {
+        return $amount;
+    }
+
     abstract function getSubscription(string $subscriptionId);
 
 
