@@ -68,6 +68,7 @@ class TruegateClient extends PurchasesClient
             $price->setCurrency($plan['currency']);
             $price->setPeriod((int)$plan['duration'], (string)$plan['durationUnit']);
             if (isset($plan['trial']) && $plan['trial']) {
+                // вот тут реализовать что-то нужно, возможно добавить цены
                 $intervalUnit = $plan['trial']['durationUnit'];
                 $intervalCount = $plan['trial']['duration'];
                 $intervalDays = self::INTERVAL_UNIT_DAYS_MAP[$intervalUnit] ?? 0;
@@ -145,16 +146,30 @@ class TruegateClient extends PurchasesClient
         return $subscription;
     }
 
-    public function startSubscription(string $planId, string $idfm, string $email, string $merchantName, array $metadata = [])
-    {
+    public function startSubscription(
+        string $planId,
+        string $idfm,
+        string $email,
+        string $merchantName,
+        ?string $currency,
+        ?string $subscriptionPlanCountry,
+        ?string $customerIp,
+        array $metadata = [],
+    ) {
+        // тут написать конвертер на то чтобы из 3 в 2 символа перевод делать
+
         $params = [
             'projectId' => $this->projectId,
             'subscriptionProductPlanId' => $planId,
             'externalUserId' => $idfm,
             'email' => $email,
             'customPaymentDescriptor' => $merchantName,
-            'metadata' => $metadata
+            'currency' => $currency, // 'USD',
+            'subscriptionPlanCountry' => $subscriptionPlanCountry, // 'AL',
+            'customerIp' => $customerIp, // '208.67.222.222',
+            'metadata' => $metadata,
         ];
+
         return $this->getProvider()->startSubscription($params);
     }
 
