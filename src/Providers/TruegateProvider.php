@@ -36,8 +36,17 @@ class TruegateProvider
         return $this->makeRequest('POST', 'subscriptions/subscription-product-plans', $params);
     }
 
-    public function startSubscription(array $params) {
-        return $this->makeRequest('POST', 'subscriptions/start', $params, ['metadata', 'customPaymentDescriptor']);
+    public function startSubscription(array $params)
+    {
+        $exceptFieldsForSign = [
+            'metadata',
+            'customPaymentDescriptor',
+            'currency',
+            'subscriptionPlanCountry',
+            'customerIp',
+        ];
+
+        return $this->makeRequest('POST', 'subscriptions/start', $params, $exceptFieldsForSign);
     }
 
     public function startOneTimePayment(array $params) {
