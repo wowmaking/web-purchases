@@ -335,6 +335,15 @@ class TruegateClient extends PurchasesClient
         return $this->getProvider()->getDistuteDetails($id);
     }
 
+    public function getTransactionsBySubscriptionId($subscriptionId)
+    {
+        $params = [
+            'projectId' => $this->projectId,
+            'subscriptionId' => $subscriptionId,
+        ];
+        return $this->getProvider()->getTransactionsBySubscriptionId($params);
+    }
+
     private function findObjectByCountry(string $country, array $rows): ?array
     {
         foreach ($rows as $row) {
