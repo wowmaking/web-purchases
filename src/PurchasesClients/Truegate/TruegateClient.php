@@ -2,16 +2,16 @@
 
 namespace Wowmaking\WebPurchases\PurchasesClients\Truegate;
 
-use DateInterval;
-use DateTimeImmutable;
 use InvalidArgumentException;
 use LogicException;
-use Wowmaking\WebPurchases\Providers\PaypalProvider;
+use Throwable;
 use Wowmaking\WebPurchases\Providers\TruegateProvider;
 use Wowmaking\WebPurchases\PurchasesClients\PurchasesClient;
 use Wowmaking\WebPurchases\PurchasesClients\WithoutCustomerSupportTrait;
 use Wowmaking\WebPurchases\Resources\Entities\Price;
+use Wowmaking\WebPurchases\Resources\Entities\PriceCurrency;
 use Wowmaking\WebPurchases\Resources\Entities\Subscription;
+use Wowmaking\WebPurchases\Services\CountryCodeConverterService;
 
 /**
  * @method TruegateProvider getProvider()
@@ -19,6 +19,8 @@ use Wowmaking\WebPurchases\Resources\Entities\Subscription;
 class TruegateClient extends PurchasesClient
 {
     use WithoutCustomerSupportTrait;
+
+    private const DEFAULT_COUNTRY_CODE = 'ALL';
 
     private const STATUS_ACTIVE = 'ACTIVE';
     private const STATUS_TRIAL = 'TRIAL';
@@ -29,17 +31,16 @@ class TruegateClient extends PurchasesClient
     private const STATUS_INCOMPLETE = 'INCOMPLETE';
     private const STATUS_INCOMPLETE_EXPIRED = 'INCOMPLETE_EXPIRED';
 
-
     private const INTERVAL_UNIT_DAYS_MAP = [
         'DAY' => 1,
         'WEEK' => 7,
         'MONTH' => 30,
-        'YEAR' => 365
+        'YEAR' => 365,
     ];
 
-    private $projectId;
+    private string $projectId;
 
-    private $isSandbox;
+    private bool $isSandbox;
 
     public function __construct(string $projectId, string $secretKey, bool $isSandbox = false)
     {
@@ -56,27 +57,69 @@ class TruegateClient extends PurchasesClient
 
         $prices = [];
 
-        foreach ($plans['items'] as $plan) {
-            if ($plan['state'] !== self::STATUS_ACTIVE) {
-                continue;
+        foreach ($plans['items'] as $key => $plan) {
+            try {
+                if ($plan['state'] !== self::STATUS_ACTIVE) {
+                    continue;
+                }
+
+                $price = new Price();
+                $price->setId($plan['id']);
+                $price->setType(Price::TYPE_SUBSCRIPTION);
+                $price->setProductName($plan['name']);
+
+                $defaultPriceCurrency = $this->findObjectByCountry(self::DEFAULT_COUNTRY_CODE, $plan['prices']);
+
+                $price->setAmount($defaultPriceCurrency['amount']);
+                $price->setCurrency($defaultPriceCurrency['currency']);
+
+                $price->setPeriod((int) $plan['duration'], (string) $plan['durationUnit']);
+
+                foreach ($plan['prices'] as $planPrice) {
+                    if ($planPrice['country'] === self::DEFAULT_COUNTRY_CODE) {
+                        continue;
+                    }
+
+                    $priceCurrency = new PriceCurrency();
+                    $priceCurrency->setId((string) $planPrice['id']);
+                    $priceCurrency->setAmount($planPrice['amount']);
+
+                    $alpha3CountryCode = is_string($planPrice['country'])
+                        ? CountryCodeConverterService::alpha2ToAlpha3($planPrice['country'])
+                        : null;
+                    $priceCurrency->setCountry($alpha3CountryCode);
+
+                    $priceCurrency->setCurrency($planPrice['currency']);
+
+                    if (isset($plan['trialPrices'])) {
+                        $trialObject = $this->findObjectByCountry($planPrice['country'], $plan['trialPrices']);
+
+                        if ($trialObject !== null) {
+                            $priceCurrency->setTrialPriceAmount($trialObject['amount']);
+                        }
+                    }
+
+                    $price->addCurrency($priceCurrency);
+                }
+
+                if (isset($plan['trial']) && $plan['trial']) {
+                    $intervalUnit = $plan['trial']['durationUnit'];
+                    $intervalCount = $plan['trial']['duration'];
+                    $intervalDays = self::INTERVAL_UNIT_DAYS_MAP[$intervalUnit] ?? 0;
+                    $price->setTrialPeriodDays($intervalDays * $intervalCount);
+
+                    $defaultTrialPricesCurrency = $this->findObjectByCountry(
+                        self::DEFAULT_COUNTRY_CODE,
+                        $plan['trialPrices'],
+                    );
+                    $price->setTrialPriceAmount($defaultTrialPricesCurrency['amount']);
+                }
+                $prices[] = $price;
+            } catch (Throwable $throwable) {
+                print_r($throwable->getMessage());
             }
-            $price = new Price();
-            $price->setId($plan['id']);
-            $price->setType(Price::TYPE_SUBSCRIPTION);
-            $price->setProductName($plan['name']);
-            $price->setAmount($plan['price']);
-            $price->setCurrency($plan['currency']);
-            $price->setPeriod((int)$plan['duration'], (string)$plan['durationUnit']);
-            if (isset($plan['trial']) && $plan['trial']) {
-                // вот тут реализовать что-то нужно, возможно добавить цены
-                $intervalUnit = $plan['trial']['durationUnit'];
-                $intervalCount = $plan['trial']['duration'];
-                $intervalDays = self::INTERVAL_UNIT_DAYS_MAP[$intervalUnit] ?? 0;
-                $price->setTrialPeriodDays($intervalDays * $intervalCount);
-                $price->setTrialPriceAmount($plan['trial']['price'] ? $plan['trial']['price'] : 0);
-            }
-            $prices[] = $price;
         }
+
         return $prices;
     }
 
@@ -156,19 +199,26 @@ class TruegateClient extends PurchasesClient
         ?string $customerIp,
         array $metadata = [],
     ) {
-        // тут написать конвертер на то чтобы из 3 в 2 символа перевод делать
-
         $params = [
             'projectId' => $this->projectId,
             'subscriptionProductPlanId' => $planId,
             'externalUserId' => $idfm,
             'email' => $email,
             'customPaymentDescriptor' => $merchantName,
-            'currency' => $currency, // 'USD',
-            'subscriptionPlanCountry' => $subscriptionPlanCountry, // 'AL',
-            'customerIp' => $customerIp, // '208.67.222.222',
             'metadata' => $metadata,
         ];
+
+        if ($currency) {
+            $params['currency'] = $currency;
+        }
+
+        if (is_string($subscriptionPlanCountry)) {
+            $params['subscriptionPlanCountry'] = CountryCodeConverterService::alpha3ToAlpha2($subscriptionPlanCountry);
+        }
+
+        if ($customerIp) {
+            $params['customerIp'] = $customerIp;
+        }
 
         return $this->getProvider()->startSubscription($params);
     }
@@ -191,7 +241,7 @@ class TruegateClient extends PurchasesClient
     {
         $params = [
             'transactionId' => $transactionId,
-            'projectId' => $this->projectId,
+            'projectId'=> $this->projectId,
             'subscriptionId' => $subscriptionId,
             'amount' => $amount,
             'currency' => $currency,
@@ -205,7 +255,7 @@ class TruegateClient extends PurchasesClient
     {
         $params = [
             'transactionId' => $transactionId,
-            'projectId' => $this->projectId,
+            'projectId'=> $this->projectId,
             'externalUserId' => $externalUserId,
             'email' => $email,
             'currency' => $currency,
@@ -215,7 +265,6 @@ class TruegateClient extends PurchasesClient
         ];
         return $this->getProvider()->oneTimePaymentWithExternalUserId($params);
     }
-
 
     public function loadProvider(): void
     {
@@ -286,14 +335,14 @@ class TruegateClient extends PurchasesClient
         return $this->getProvider()->getDistuteDetails($id);
     }
 
-    public function getTransactionsBySubscriptionId($subscriptionId)
+    private function findObjectByCountry(string $country, array $rows): ?array
     {
-        $params = [
-            'projectId' => $this->projectId,
-            'subscriptionId' => $subscriptionId,
-        ];
-        return $this->getProvider()->getTransactionsBySubscriptionId($params);
+        foreach ($rows as $row) {
+            if ($row['country'] === $country) {
+                return $row;
+            }
+        }
+
+        return null;
     }
-
-
 }
