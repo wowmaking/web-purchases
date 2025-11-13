@@ -320,6 +320,17 @@ class TruegateClient extends PurchasesClient
         $this->throwNoRealization(__METHOD__);
     }
 
+    public function truegateChangePlan(string $subscriptionId, string $planCode): bool
+    {
+        $params = [
+            'projectId' => $this->projectId,
+            'subscriptionId' => $subscriptionId,
+            'subscriptionProductPlanId' => $planCode,
+        ];
+
+        return $this->getProvider()->changePlan($params);
+    }
+
     public function getTransactions($startDate, $endDate, $page)
     {
         return $this->getProvider()->getTransactions($startDate, $endDate, $page);

@@ -3,7 +3,6 @@
 namespace Wowmaking\WebPurchases\Providers;
 
 use GuzzleHttp\Client;
-use LogicException;
 
 class TruegateProvider
 {
@@ -19,11 +18,6 @@ class TruegateProvider
      * @var Client
      */
     private $httpClient;
-
-    /**
-     * @var string|null
-     */
-    private $accessToken;
 
     public function __construct(string $clientSecret, bool $sandbox = false)
     {
@@ -73,11 +67,14 @@ class TruegateProvider
         return $this->makeRequest('POST', 'pay/refund', $params);
     }
 
+    public function changePlan(array $params)
+    {
+        return $this->makeRequest('POST', 'subscriptions/switch-plan', $params);
+    }
+
     public function getSubscription(array $params) {
         return $this->makeRequest('POST', 'subscriptions/details', $params);
     }
-
-
 
     public function getTransactionsBySubscriptionId(array $params){
         return $this->makeRequest('POST', 'subscriptions/transactions/bySubscriptionId', $params);
@@ -115,10 +112,4 @@ class TruegateProvider
         $signature = hash_hmac("sha256", $params, $this->clientSecret);
         return $signature;
     }
-
-
-
-
-
-
 }
