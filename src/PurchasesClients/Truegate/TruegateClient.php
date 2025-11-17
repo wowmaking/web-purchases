@@ -116,7 +116,8 @@ class TruegateClient extends PurchasesClient
                 }
                 $prices[] = $price;
             } catch (Throwable $throwable) {
-                print_r($throwable->getMessage());
+                print_r("\n {$throwable->getMessage()}");
+                print_r("\n {$throwable->getTraceAsString()}");
             }
         }
 
@@ -320,7 +321,7 @@ class TruegateClient extends PurchasesClient
         $this->throwNoRealization(__METHOD__);
     }
 
-    public function truegateChangePlan(string $subscriptionId, string $planCode): bool
+    public function truegateChangePlan(string $subscriptionId, string $planCode)
     {
         $params = [
             'projectId' => $this->projectId,
