@@ -42,6 +42,10 @@ class Subscription implements ResourcesEntityInterface
 
     private $notActiveStatuses = ['cancelled', 'canceled', 'expired'];
 
+    public $cardType=null;
+    
+    public $isReloadableCard=null;
+
     /**
      * @return string|null
      */
@@ -319,6 +323,23 @@ class Subscription implements ResourcesEntityInterface
         return false;
     }
 
+    public function setCardType($cardType): void
+    {
+        $this->cardType = $cardType;
+    }
 
+    public function getCardType(): ?string
+    {
+        return $this->cardType;
+    }
 
+    public function setIsReloadableCard($isReloadable): void
+    {
+        $this->isReloadableCard = $isReloadable;
+    }
+
+    public function getIsReloadableCard(): ?string
+    {
+        return $this->isReloadableCard;
+    }
 }
