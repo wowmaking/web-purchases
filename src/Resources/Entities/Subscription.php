@@ -338,7 +338,7 @@ class Subscription implements ResourcesEntityInterface
         $this->isReloadableCard = $isReloadable;
     }
 
-    public function getIsReloadableCard(): ?string
+    public function getIsReloadableCard(): ?bool
     {
         return $this->isReloadableCard;
     }
