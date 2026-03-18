@@ -64,7 +64,7 @@ class TruegateProvider
     }
 
     public function refund(array $params) {
-        return $this->makeRequest('POST', 'pay/refund', $params);
+        return $this->makeRequest('POST', 'pay/start-cancellation', $params);
     }
 
     public function changePlan(array $params)
