@@ -439,6 +439,24 @@ class SolidgateClient extends PurchasesClient
         }
     }
 
+    public function resume(string $subscriptionId): Subscription
+    {
+        $rawResponse = $this->provider->resume($subscriptionId);
+        $response = json_decode($rawResponse, true);
+
+        if (is_array($response) && isset($response['error'])) {
+            $message = $response['error']['messages'] ?? $response['error'];
+            throw new \Exception(is_string($message) ? $message : json_encode($message), 415);
+        }
+
+        $providerException = $this->provider->getException();
+        if ($providerException) {
+            throw $providerException;
+        }
+
+        return $this->buildSubscriptionResource($this->getSubscription($subscriptionId));
+    }
+
     public function changePlan(string $subscriptionId, string $planCode): bool
     {
         $response = json_decode(

@@ -137,6 +137,18 @@ class SolidgateProvider
         return '';
     }
 
+    protected function sendDeleteRequest(string $method): string
+    {
+        $request = $this->makeDeleteRequest($method);
+        try {
+            $response = $this->subscriptionsApiClient->send($request);
+            return $response->getBody()->getContents();
+        } catch (Throwable $e) {
+            $this->exception = $e;
+        }
+        return '';
+    }
+
     protected function sendGetRequest(string $method, array $attributes): string
     {
         $request = $this->makeGetRequest($method, $attributes);
@@ -242,6 +254,17 @@ class SolidgateProvider
         return new Request('GET', $path.'?'.http_build_query($attributes), $headers);
     }
 
+    protected function makeDeleteRequest(string $path): Request
+    {
+        $headers = [
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+            'Merchant' => $this->merchantId,
+            'Signature' => $this->generateSignature(''),
+        ];
+        return new Request('DELETE', $path, $headers);
+    }
+
     public function checkOrderStatus($attributes) {
         return $this->sendRequestToPayApi('status', $attributes);
     }
@@ -273,6 +296,11 @@ class SolidgateProvider
     public function pause($subscriptionId, $attributes) {
 
         return $this->sendRequest('subscriptions/'.$subscriptionId."/pause-schedule", $attributes);
+    }
+
+    public function resume($subscriptionId)
+    {
+        return $this->sendDeleteRequest('subscriptions/'.$subscriptionId.'/pause-schedule');
     }
 
     public function changePlan($attributes){
