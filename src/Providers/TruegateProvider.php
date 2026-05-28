@@ -43,27 +43,33 @@ class TruegateProvider
         return $this->makeRequest('POST', 'subscriptions/start', $params, $exceptFieldsForSign);
     }
 
-    public function startOneTimePayment(array $params) {
+    public function startOneTimePayment(array $params)
+    {
         return $this->makeRequest('POST', 'pay/start', $params, ['metadata', 'customPaymentDescriptor']);
     }
 
-    public function oneTimePayment(array $params) {
+    public function oneTimePayment(array $params)
+    {
         return $this->makeRequest('POST', 'one-time-payments/create', $params, ['metadata']);
     }
 
-    public function oneTimePaymentWithExternalUserId(array $params) {
+    public function oneTimePaymentWithExternalUserId(array $params)
+    {
         return $this->makeRequest('POST', 'pay/recurrent', $params, ['metadata', 'description']);
     }
 
-    public function cancelSubscription(array $params) {
+    public function cancelSubscription(array $params)
+    {
         return $this->makeRequest('POST', 'subscriptions/cancel', $params);
     }
 
-    public function getTransactionDetails(array $params) {
+    public function getTransactionDetails(array $params)
+    {
         return $this->makeRequest('POST', 'subscriptions/transactions/details', $params);
     }
 
-    public function refund(array $params) {
+    public function refund(array $params)
+    {
         return $this->makeRequest('POST', 'pay/start-cancellation', $params);
     }
 
@@ -72,21 +78,29 @@ class TruegateProvider
         return $this->makeRequest('POST', 'subscriptions/switch-plan', $params);
     }
 
-    public function getSubscription(array $params) {
+    public function buyWithRecurrent(array $params)
+    {
+        return $this->makeRequest('POST', 'subscriptions/buy-with-recurrent', $params, ['metadata']);
+    }
+
+    public function getSubscription(array $params)
+    {
         return $this->makeRequest('POST', 'subscriptions/details', $params);
     }
 
-    public function getTransactionsBySubscriptionId(array $params){
+    public function getTransactionsBySubscriptionId(array $params)
+    {
         return $this->makeRequest('POST', 'subscriptions/transactions/bySubscriptionId', $params);
     }
 
     private function makeRequest(string $method, string $path, array $body = [], array $exceptFildsForSign = [])
     {
-        if($exceptFildsForSign) {
+        if ($exceptFildsForSign) {
             $fieldsForSign = array_diff_key($body, array_flip($exceptFildsForSign));
         } else {
             $fieldsForSign = $body;
         }
+
         $body['signature'] = $this->signRequest($fieldsForSign);
         $response = $this->httpClient->request($method, $path, [
             'headers' =>
@@ -101,12 +115,13 @@ class TruegateProvider
         return json_decode($response->getBody(), true);
     }
 
-    private function signRequest(array $payload): string {
-        $params = implode('&', array_map(function($k, $v) {
-            if(is_bool($v)) {
+    private function signRequest(array $payload): string
+    {
+        $params = implode('&', array_map(function ($k, $v) {
+            if (is_bool($v)) {
                 $v = $v ? 'true' : 'false';
             }
-            return "$k=".urlencode($v);
+            return "$k=" . urlencode($v);
         }, array_keys($payload), $payload));
 
         $signature = hash_hmac("sha256", $params, $this->clientSecret);

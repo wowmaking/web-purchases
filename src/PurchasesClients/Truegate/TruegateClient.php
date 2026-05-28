@@ -332,6 +332,19 @@ class TruegateClient extends PurchasesClient
         return $this->getProvider()->changePlan($params);
     }
 
+    public function buyWithRecurrent(
+        string $sourceSubscriptionId,
+        string $subscriptionProductPlanId,
+        array $metadata = []
+    ): array {
+        return $this->getProvider()->buyWithRecurrent([
+            'projectId' => $this->projectId,
+            'sourceSubscriptionId' => $sourceSubscriptionId,
+            'subscriptionProductPlanId' => $subscriptionProductPlanId,
+            'metadata' => $metadata,
+        ]);
+    }
+
     public function getTransactions($startDate, $endDate, $page)
     {
         return $this->getProvider()->getTransactions($startDate, $endDate, $page);
