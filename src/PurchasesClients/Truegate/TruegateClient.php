@@ -116,6 +116,10 @@ class TruegateClient extends PurchasesClient
                 }
                 $prices[] = $price;
             } catch (Throwable $throwable) {
+                if (isset($plan['id'])) {
+                    print_r("\n error productId for {$plan['id']}");
+                }
+
                 print_r("\n {$throwable->getMessage()}");
                 print_r("\n {$throwable->getTraceAsString()}");
             }
