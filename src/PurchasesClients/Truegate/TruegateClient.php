@@ -162,7 +162,7 @@ class TruegateClient extends PurchasesClient
         $subscription->setPlanName($providerResponse['subscriptionProductPlanId']);
         $subscription->setEmail($providerResponse['lastTransaction']['transactionDetails']['email'] ?? $providerResponse['email']??null);
         $subscription->setCurrency($providerResponse['lastTransaction']['currency']);
-        $subscription->setAmount($providerResponse['lastTransaction']['amount']);
+        $subscription->setAmount($providerResponse['nextPayment']['amount']);
         $subscription->setCustomerId($providerResponse['customer_id']??null);
         $subscription->setCreatedAt($providerResponse['createdAt']);
         $subscription->setExpireAt($providerResponse['nextPaymentDate']);
