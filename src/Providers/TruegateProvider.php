@@ -83,6 +83,11 @@ class TruegateProvider
         return $this->makeRequest('POST', 'subscriptions/buy-with-recurrent', $params, ['metadata']);
     }
 
+    public function buyWithSinglePayRecurrent(array $params)
+    {
+        return $this->makeRequest('POST', 'subscriptions/buy-with-single-pay-recurrent', $params, ['metadata']);
+    }
+
     public function getSubscription(array $params)
     {
         return $this->makeRequest('POST', 'subscriptions/details', $params);

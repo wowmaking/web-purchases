@@ -345,6 +345,19 @@ class TruegateClient extends PurchasesClient
         ]);
     }
 
+    public function buyWithSinglePayRecurrent(
+        string $externalUserId,
+        string $subscriptionProductPlanId,
+        array $metadata = []
+    ): array {
+        return $this->getProvider()->buyWithSinglePayRecurrent([
+            'projectId' => $this->projectId,
+            'externalUserId' => $externalUserId,
+            'subscriptionProductPlanId' => $subscriptionProductPlanId,
+            'metadata' => $metadata,
+        ]);
+    }
+
     public function getTransactions($startDate, $endDate, $page)
     {
         return $this->getProvider()->getTransactions($startDate, $endDate, $page);
