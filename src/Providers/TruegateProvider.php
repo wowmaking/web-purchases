@@ -63,6 +63,16 @@ class TruegateProvider
         return $this->makeRequest('POST', 'subscriptions/cancel', $params);
     }
 
+    public function pauseSubscription(array $params)
+    {
+        return $this->makeRequest('POST', 'subscriptions/pause', $params);
+    }
+
+    public function resumeSubscription(array $params)
+    {
+        return $this->makeRequest('POST', 'subscriptions/resume', $params);
+    }
+
     public function getTransactionDetails(array $params)
     {
         return $this->makeRequest('POST', 'subscriptions/transactions/details', $params);

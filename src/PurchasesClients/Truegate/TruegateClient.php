@@ -30,6 +30,7 @@ class TruegateClient extends PurchasesClient
     private const STATUS_CANCELLED = 'CANCELLED';
     private const STATUS_INCOMPLETE = 'INCOMPLETE';
     private const STATUS_INCOMPLETE_EXPIRED = 'INCOMPLETE_EXPIRED';
+    private const STATUS_PAUSED = 'PAUSED';
 
     private const INTERVAL_UNIT_DAYS_MAP = [
         'DAY' => 1,
@@ -155,6 +156,33 @@ class TruegateClient extends PurchasesClient
         return new Subscription();
     }
 
+    /**
+     * @param string $pauseUntilDate ISO 8601 date-time of automatic resumption
+     */
+    public function pause(string $subscriptionId, string $pauseUntilDate): bool
+    {
+        // Field order matters: Truegate signs projectId, subscriptionId, pauseUntilDate in this order.
+        $params = [
+            'projectId' => $this->projectId,
+            'subscriptionId' => $subscriptionId,
+            'pauseUntilDate' => $pauseUntilDate,
+        ];
+        $this->getProvider()->pauseSubscription($params);
+
+        return true;
+    }
+
+    public function resume(string $subscriptionId): Subscription
+    {
+        $params = [
+            'projectId' => $this->projectId,
+            'subscriptionId' => $subscriptionId,
+        ];
+        $this->getProvider()->resumeSubscription($params);
+
+        return $this->buildSubscriptionResource($this->getSubscription($subscriptionId));
+    }
+
     public function buildSubscriptionResource($providerResponse): Subscription
     {
         $subscription = new Subscription();
@@ -162,15 +190,15 @@ class TruegateClient extends PurchasesClient
         $subscription->setPlanName($providerResponse['subscriptionProductPlanId']);
         $subscription->setEmail($providerResponse['lastTransaction']['transactionDetails']['email'] ?? $providerResponse['email']??null);
         $subscription->setCurrency($providerResponse['lastTransaction']['currency']);
-        $subscription->setAmount($providerResponse['nextPayment']['amount']);
+        $subscription->setAmount($providerResponse['nextPayment']['amount'] ?? null);
         $subscription->setCustomerId($providerResponse['customer_id']??null);
         $subscription->setCreatedAt($providerResponse['createdAt']);
-        $subscription->setExpireAt($providerResponse['nextPaymentDate']);
+        $subscription->setExpireAt($providerResponse['nextPaymentDate'] ?? null);
         $subscription->setState($providerResponse['state']);
         $subscription->setIsActive(
             in_array(
                 $providerResponse['state'],
-                [self::STATUS_ACTIVE, self::STATUS_TRIAL, self::STATUS_DUNNING_PERIOD, self::STATUS_GRACE_PERIOD, self::STATUS_INCOMPLETE, self::STATUS_CANCELLED],
+                [self::STATUS_ACTIVE, self::STATUS_TRIAL, self::STATUS_DUNNING_PERIOD, self::STATUS_GRACE_PERIOD, self::STATUS_INCOMPLETE, self::STATUS_CANCELLED, self::STATUS_PAUSED],
                 true
             )
         );
